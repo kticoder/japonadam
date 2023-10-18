@@ -4,7 +4,7 @@
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
 Version: 1.0
-Author: ChatGPT
+Author: Melih Cat & Ktidev
 */
 
 require 'plugin-update-checker/plugin-update-checker.php';
