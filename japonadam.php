@@ -16,6 +16,9 @@ $myUpdateChecker = PucFactory::buildUpdateChecker(
 	'japonadam'
 );
 
+//Set the branch that contains the stable release.
+$myUpdateChecker->setBranch('main');
+
 class JaponAdamAktivasyon {
 
     private $table_name;
