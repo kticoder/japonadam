@@ -11,7 +11,7 @@ require 'plugin-update-checker/plugin-update-checker.php';
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 $myUpdateChecker = PucFactory::buildUpdateChecker(
-	'https://gitfront.io/r/kadirilgin1453/chLQUmkhPsAX/japonadam.git',
+	'https://github.com/kticoder/japonadam',
 	__FILE__,
 	'japonadam'
 );
