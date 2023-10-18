@@ -3,8 +3,8 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1
-Author: Melih Cat & Ktidev <3
+Version: 1.1.0
+Author: Melih Cat & Ktidev
 */
 
 require 'plugin-update-checker/plugin-update-checker.php';
