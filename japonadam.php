@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.1
+Version: 1.1.2
 Author: Melih Çat & Ktidev
 */
 
@@ -48,7 +48,7 @@ class JaponAdamAktivasyon {
 
     // lisanslı ürünleri getirir.
     public function fetch_lisans_products() {
-        $response = wp_remote_get("https://gerillavizyon.com/wp-json/mylisans/v1/get-lisans-products/");
+        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/get-lisans-products/");
         if (is_wp_error($response)) {
             return [];
         }
@@ -159,7 +159,7 @@ class JaponAdamAktivasyon {
         }
 
         $aktivasyon_kodu = sanitize_text_field($_POST['aktivasyon_kodu']);
-        $response = wp_remote_get("https://gerillavizyon.com/wp-json/mylisans/v1/api/?activation_key={$aktivasyon_kodu}");
+        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/api/?activation_key={$aktivasyon_kodu}");
 
         if (is_wp_error($response)) {
             return ["success" => false, "message" => $response->get_error_message()];
