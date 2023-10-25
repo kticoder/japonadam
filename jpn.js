@@ -15,7 +15,7 @@ function installPlugin(buttonElement,aktivasyonKodu) {
     var progressWidth = 0;
     // AJAX isteği oluşturalım:
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/wp-json/mylisans/v1/install-plugin/?product_id=' + productID + '&aktivasyon_kodu=' + aktivasyonKodu, true);
+    xhr.open('GET', 'https://japonadam.com/wp-json/mylisans/v1/install-plugin/?product_id=' + productID + '&aktivasyon_kodu=' + aktivasyonKodu, true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) { // AJAX isteği tamamlandığında
             clearInterval(interval); // Intervalı sonlandır.
@@ -62,7 +62,7 @@ function installPlugin(buttonElement,aktivasyonKodu) {
 
 function addProductToInstalledList(productID) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/wp-json/mylisans/v1/add-installed-product/?product_id=' + productID, true);
+    xhr.open('GET', 'https://japonadam.com/wp-json/mylisans/v1/add-installed-product/?product_id=' + productID, true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);

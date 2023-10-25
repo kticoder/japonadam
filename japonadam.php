@@ -226,7 +226,7 @@ class JaponAdamAktivasyon {
 
                 <!-- Logo bölümü -->
                 <div class="jp-logo">
-                    <h2 class="text-white text-2xl">Japon Adam Mağazanız</h2>
+                    <h2 class="text-white text-2xl">Japon Adam</h2>
                 </div>
 
                 <!-- Ürün kategorileri menüsü -->
