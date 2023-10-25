@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.3
+Version: 1.1.4
 Author: Melih Çat & Ktidev
 */
 
@@ -271,7 +271,7 @@ class JaponAdamAktivasyon {
 
                             <!-- Ürün işlem butonları -->
                             <div>
-                                <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" onclick="installPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #f33059;">Kurulum Yap</button>
+                                <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>','<?php echo esc_attr($product['download_link']); ?>')" style="background-color: #f33059;">Kurulum Yap</button>
                                 <div class="flex justify-between mt-2">
                                     <button href="<?php echo esc_url($product['permalink']); ?>" class="bg-blue-500 text-white border-0 rounded-lg py-2 text-md flex-grow mr-2" onclick="window.open('<?php echo esc_url($product['permalink']); ?>', '_blank')" >Satın Al</button>
                                     <a href="<?php echo esc_url($product['permalink']); ?>" class="bg-purple-500 text-white border-0 rounded-lg py-2 px-6 text-md hover:text-blue-100" style="background-color:#705b92;">İncele</a>
@@ -307,3 +307,55 @@ class JaponAdamAktivasyon {
 
 // Eklenti çalıştırılırken sınıfın bir örneğini oluşturma
 new JaponAdamAktivasyon();
+add_action('rest_api_init', function () {
+    register_rest_route('mylisans/v1', '/install-plugin/', array(
+        'methods' => 'GET',
+        'callback' => 'install_plugin_endpoint_callback',
+        'permission_callback' => '__return_true'
+    ));
+});
+
+function install_plugin_endpoint_callback($request) {
+    $product_id = sanitize_text_field($request->get_param('product_id'));
+    
+    // Verilen ürün ID'sine göre indirme linkini alalım
+    $download_link = sanitize_text_field($request->get_param('download_link'));
+
+    // Eğer indirme linki yoksa hata dönelim
+    if(!$download_link) {
+        return array(
+            'success' => false,
+            'message' => 'Eklenti için indirme linki bulunamadı.'
+        );
+    }
+    
+    // Eklenti kurulum fonksiyonunu kullanarak eklentiyi kurup aktive edelim
+    require_once(ABSPATH . 'wp-admin/includes/file.php');
+    require_once(ABSPATH . 'wp-admin/includes/plugin-install.php');
+    require_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
+    require_once(ABSPATH . 'wp-admin/includes/plugin.php');
+
+    $skin = new WP_Ajax_Upgrader_Skin();
+    $upgrader = new Plugin_Upgrader($skin);
+    $installed = $upgrader->install($download_link);
+    if (!$installed || is_wp_error($installed)) {
+        return array(
+            'success' => false,
+            'message' => 'Eklenti kurulamadı: ' . $skin->get_errors()->get_error_message()
+        );
+    }
+
+    $plugin_file = $upgrader->plugin_info();
+    $activate = activate_plugin($plugin_file);
+    if (is_wp_error($activate)) {
+        return array(
+            'success' => false,
+            'message' => 'Eklenti kuruldu ama aktifleştirilemedi: ' . $activate->get_error_message()
+        );
+    }
+
+    return array(
+        'success' => true,
+        'message' => 'Eklenti başarıyla kuruldu ve aktifleştirildi!'
+    );
+}
