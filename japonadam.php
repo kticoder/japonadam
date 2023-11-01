@@ -316,46 +316,53 @@ add_action('rest_api_init', function () {
 });
 
 function install_plugin_endpoint_callback($request) {
-    $product_id = sanitize_text_field($request->get_param('product_id'));
-    
-    // Verilen ürün ID'sine göre indirme linkini alalım
-    $download_link = sanitize_text_field($request->get_param('download_link'));
+    $download_links = $request->get_param('download_link');
+    return install_plugin_or_theme($download_links);
+}
 
-    // Eğer indirme linki yoksa hata dönelim
-    if(!$download_link) {
-        return array(
-            'success' => false,
-            'message' => 'Eklenti için indirme linki bulunamadı.'
-        );
-    }
-    
-    // Eklenti kurulum fonksiyonunu kullanarak eklentiyi kurup aktive edelim
+function install_plugin_or_theme($download_links) {
     require_once(ABSPATH . 'wp-admin/includes/file.php');
     require_once(ABSPATH . 'wp-admin/includes/plugin-install.php');
     require_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
     require_once(ABSPATH . 'wp-admin/includes/plugin.php');
+    require_once(ABSPATH . 'wp-admin/includes/theme.php');
 
-    $skin = new WP_Ajax_Upgrader_Skin();
-    $upgrader = new Plugin_Upgrader($skin);
-    $installed = $upgrader->install($download_link);
-    if (!$installed || is_wp_error($installed)) {
-        return array(
-            'success' => false,
-            'message' => 'Eklenti kurulamadı: ' . $skin->get_errors()->get_error_message()
-        );
+    $links = explode(',', $download_links);
+    foreach ($links as $link) {
+        $link = trim($link);
+        if (strpos($link, 'theme') !== false) {  // Tema linklerinde 'theme' kelimesini kontrol ediyoruz
+            $skin = new WP_Ajax_Upgrader_Skin();
+            $upgrader = new Theme_Upgrader($skin);
+            $installed = $upgrader->install($link);
+            if (!$installed || is_wp_error($installed)) {
+                return array(
+                    'success' => false,
+                    'message' => 'Tema kurulamadı: ' . $skin->get_errors()->get_error_message()
+                );
+            }
+        } else {  // Eğer 'theme' kelimesi yoksa, eklenti olarak kabul ediyoruz
+            $skin = new WP_Ajax_Upgrader_Skin();
+            $upgrader = new Plugin_Upgrader($skin);
+            $installed = $upgrader->install($link);
+            if (!$installed || is_wp_error($installed)) {
+                return array(
+                    'success' => false,
+                    'message' => 'Eklenti kurulamadı: ' . $skin->get_errors()->get_error_message()
+                );
+            }
+
+            $plugin_file = $upgrader->plugin_info();
+            $activate = activate_plugin($plugin_file);
+            if (is_wp_error($activate)) {
+                return array(
+                    'success' => false,
+                    'message' => 'Eklenti kuruldu ama aktifleştirilemedi: ' . $activate->get_error_message()
+                );
+            }
+        }
     }
-
-    $plugin_file = $upgrader->plugin_info();
-    $activate = activate_plugin($plugin_file);
-    if (is_wp_error($activate)) {
-        return array(
-            'success' => false,
-            'message' => 'Eklenti kuruldu ama aktifleştirilemedi: ' . $activate->get_error_message()
-        );
-    }
-
     return array(
         'success' => true,
-        'message' => 'Eklenti başarıyla kuruldu ve aktifleştirildi!'
+        'message' => 'Eklenti/tema başarıyla kuruldu ve aktifleştirildi!'
     );
 }
