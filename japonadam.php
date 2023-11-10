@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.5
+Version: 1.1.6
 Author: Melih Çat & Ktidev
 */
 
