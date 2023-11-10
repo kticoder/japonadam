@@ -298,11 +298,13 @@ class JaponAdamAktivasyon {
                             </div>
                             <!-- Ürün işlem butonları -->
                             <div>
+                                <!-- <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>','<?php echo esc_attr($product['download_link']); ?>')" style="background-color: #f33059;"><?php echo  $this->check_activation_status(get_site_url(), $product['productid'], $aktivasyon_kodu) == 'true' ? 'Güncelle' : 'Kur'; ?></button> -->
                                 <?php if ($this->check_activation_status(get_site_url(), $product['productid'], $aktivasyon_kodu) == 'true') { ?>
                                     <button id="installplugin" class="bg-green-600 text-white border-0 rounded-lg py-2 text-md w-full" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>','<?php echo esc_attr($product['download_link']); ?>')" style="background-color: #008000;">Güncelle</button>
-                                <?php } else if (in_array($product['productid'], array_keys($purchased_product_ids))) { ?>
+                                <?php } else { ?>
                                     <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>','<?php echo esc_attr($product['download_link']); ?>')" style="background-color: #f33059;">Kurulum Yap</button>
                                 <?php } ?>
+
                                 <div class="flex justify-between mt-2">
                                     <button href="<?php echo esc_url($product['permalink']); ?>" class="bg-blue-500 text-white border-0 rounded-lg py-2 text-md flex-grow mr-2" onclick="window.open('<?php echo esc_url($product['permalink']); ?>', '_blank')" >Satın Al</button>
                                     <a href="<?php echo esc_url($product['permalink']); ?>" class="bg-purple-500 text-white border-0 rounded-lg py-2 px-6 text-md hover:text-blue-100" style="background-color:#705b92;">İncele</a>

@@ -67,9 +67,9 @@ function installPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
                 var response = JSON.parse(xhr.responseText);
                 if (response.success) {
                     progressBar.style.width = '100%';
-                    alert("Eklenti başarıyla kuruldu!");
+                    alert("Ürününüz başarıyla kuruldu");
                     console.log(response);
-                    buttonElement.textContent = "Bu eklenti sitenizde kurulu.";
+                    buttonElement.textContent = "Bu ürün sitenizde kurulu.";
                     buttonElement.style.backgroundColor = "green";
                     buttonElement.style.pointerEvents = "none";
                     addProductToInstalledList(productID);
@@ -77,6 +77,9 @@ function installPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
                     buttonElement.textContent = "Bu ürün sitenizde zaten kurulmuş.";
                     buttonElement.style.backgroundColor = "green";
                     buttonElement.style.pointerEvents = "none";
+                // eğer mesaj içinde Destination folder already exists. hatası varsa
+                } else if (response.message.indexOf('Destination folder already exists.') !== -1) {
+                    alert('Bu eklenti sitenizde zaten kurulu.');
                 } else {
                     alert(response.message);
                 }
