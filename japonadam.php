@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.7
+Version: 1.1.9
 Author: Melih Çat & Ktidev
 */
 
@@ -227,7 +227,7 @@ class JaponAdamAktivasyon {
         $isActivated = $this->is_activation_code_exists();
         $inputValue = $isActivated ? '•••••••••••••••••' : '';
         $buttonValue = $isActivated ? 'Aktivasyonu Kaldır' : 'Doğrula';
-        $buttonColor = $isActivated ? '#705b92' : '#f33059';
+        $buttonColor = $isActivated ? '#bc2626' : '#1cbcff';
         $tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'all_products';
         // Satın alınan ürünlerin productid'lerini al
         $purchased_product_ids = $this->fetch_purchased_products();
@@ -247,14 +247,14 @@ class JaponAdamAktivasyon {
         }
         ?>
         <!-- Ana konteyner -->
-        <div class="jp-tut rounded-2xl m-12" style="background-color: #2c1d58;">
+        <div class="jp-tut rounded-2xl m-12" style="background-color: #262626;"> 
 
             <!-- Üst navigasyon bölümü -->
-            <div class="jp-nav flex justify-between items-center p-6 rounded-t-2xl" style="background:#332363;">
+            <div class="jp-nav flex justify-between items-center p-6 rounded-t-2xl" style="background:#1b1b1b;">
 
                 <!-- Logo bölümü -->
-                <div class="jp-logo">
-                    <h2 class="text-white text-2xl">Japon Adam</h2>
+                <div class="jp-logo w-12 h-12">
+                    <img src="https://japonadam.com/wp-content/uploads/2023/10/japonadam-logo.png" style="border: 0;">
                 </div>
 
                 <!-- Ürün kategorileri menüsü -->
@@ -263,7 +263,7 @@ class JaponAdamAktivasyon {
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
                             <a href="?page=japon-adam&tab=all_products" class="hover:text-blue-100">Tüm Ürünler</a>
                         </li>
-                        <div class="h-5 border-r-2 border-purple-800 mx-2"></div>
+                        <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
                             <a href="?page=japon-adam&tab=purchased" class="hover:text-blue-100">Satın Aldıklarım</a>
                         </li>
@@ -285,10 +285,10 @@ class JaponAdamAktivasyon {
                 <div class="jpn-product grid grid-cols-4 gap-5">
                     <?php foreach($products as $product): ?>
                         <!-- Ürün kartı -->
-                        <div class="product flex flex-col justify-between border p-5 rounded-lg" style="border-color: #4f3e80; background-color: #332363; border-radius: 10px;" data-productid="<?php echo esc_attr($product['productid']); ?>" data-purchased="<?php echo in_array($product['productid'], array_keys($purchased_product_ids)) ? 'true' : 'false'; ?>">
+                        <div class="product flex flex-col justify-between border p-5 rounded-lg" style="border-color: #4d4d4d; background-color: #333333; border-radius: 10px;" data-productid="<?php echo esc_attr($product['productid']); ?>" data-purchased="<?php echo in_array($product['productid'], array_keys($purchased_product_ids)) ? 'true' : 'false'; ?>">
                             <!-- Ürün detayları -->
                             <div class="product-info flex-grow">
-                                <img src="<?php echo esc_url($product['thumbnail']); ?>" alt="<?php echo esc_attr($product['title']); ?>" style="border-color: #4f3e80;" class="w-full rounded-lg">
+                                <img src="<?php echo esc_url($product['thumbnail']); ?>" alt="<?php echo esc_attr($product['title']); ?>" style="border-color: #404040;" class="w-full rounded-lg">
                                 <div class="flex justify-between text-sm text-gray-400 mt-2 mb-1">
                                     <p>🔥 <?php echo esc_html($product['indirme_sayaci']); ?> 
                                     <p># <?php echo esc_html($product['veri_tipi']); ?></p>
@@ -299,13 +299,13 @@ class JaponAdamAktivasyon {
                             <!-- Ürün işlem butonları -->
                             <div>
                                 <?php if ($this->check_activation_status(get_site_url(), $product['productid'], $aktivasyon_kodu) == 'true') { ?>
-                                    <button id="installplugin" class="bg-green-600 text-white border-0 rounded-lg py-2 text-md w-full" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>','<?php echo esc_attr($product['download_link']); ?>')" style="background-color: #008000;">Güncelle</button>
+                                    <button id="installplugin" class="bg-green-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['productid']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #008000;">Güncelle</button>
                                 <?php } else if (in_array($product['productid'], array_keys($purchased_product_ids))) { ?>
-                                    <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>','<?php echo esc_attr($product['download_link']); ?>')" style="background-color: #f33059;">Kurulum Yap</button>
+                                    <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['productid']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #1CBCFF;">Kurulum Yap</button>
                                 <?php } ?>
                                 <div class="flex justify-between mt-2">
                                     <button href="<?php echo esc_url($product['permalink']); ?>" class="bg-blue-500 text-white border-0 rounded-lg py-2 text-md flex-grow mr-2" onclick="window.open('<?php echo esc_url($product['permalink']); ?>', '_blank')" >Satın Al</button>
-                                    <a href="<?php echo esc_url($product['permalink']); ?>" class="bg-purple-500 text-white border-0 rounded-lg py-2 px-6 text-md hover:text-blue-100" style="background-color:#705b92;">İncele</a>
+                                    <a href="<?php echo esc_url($product['permalink']); ?>" class="bg-gray-400 text-white border-0 rounded-lg py-2 px-6 text-md hover:text-blue-100">İncele</a>
                                 </div>
                             </div>
                         </div>
@@ -325,10 +325,10 @@ class JaponAdamAktivasyon {
             <!-- Sayfa alt bilgi bölümü -->
             <div class="jp-footer flex justify-center items-center p-4 text-white">
                 <div class="jp-destek mr-4">
-                    <a href="#">Destek</a>
+                    <a href="https://japonadam.com/destek/" target="_blank">Destek</a>
                 </div>
                 <div class="jp-sitemiz">
-                    <a href="#">Sitemizi Ziyaret Edin</a>
+                    <a href="https://japonadam.com/" target="_blank" >Sitemizi Ziyaret Edin</a>
                 </div>
             </div>
         </div>

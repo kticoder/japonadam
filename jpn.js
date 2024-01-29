@@ -1,5 +1,4 @@
-// check_activation endpoint'ini kontrol etmek için bir fonksiyon oluşturun
-function checkAndInstallPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
+function checkAndInstallPlugin(buttonElement, aktivasyonKodu){
     var productContainer = buttonElement.closest('.product');
     var productID = productContainer.getAttribute('data-productid');
     var siteURL = window.location.hostname;  // Veya doğru site URL'sini buraya girin
@@ -26,8 +25,10 @@ function checkAndInstallPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
         if (xhrCheck.readyState == 4 && xhrCheck.status == 200) {
             var response = JSON.parse(xhrCheck.responseText);
             if (response.valid) {
-                // Eğer check_activation true dönerse, installPlugin fonksiyonunu çağır
-                installPlugin(buttonElement, aktivasyonKodu,indirmeLinki);
+                // Eğer check_activation true dönerse, getDownloadLink fonksiyonunu çağır
+                getDownloadLink(productID, function(download_link) {
+                    installPlugin(buttonElement, aktivasyonKodu, download_link);
+                });
             } else {
                 alert('Aktivasyon başarısız: ' + response.error);
             }
@@ -36,6 +37,33 @@ function checkAndInstallPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
 
     // İsteği gönder
     xhrCheck.send(jsonData);
+}
+
+function xor_decrypt(input, key) {
+    input = atob(input);
+    var output = '';
+    for (var i = 0; i < input.length; i++) {
+        output += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return output;
+}
+
+function getDownloadLink(productID, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://japonadam.com/wp-json/mylisans/v1/get-download-link/' + productID, true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            var response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                var key = 'japonadamsifre'; // Bu anahtarı hem sunucuda hem de istemcide aynı tutun
+                var decrypted_link = xor_decrypt(response.product_name, key);
+                callback(decrypted_link);
+            } else {
+                alert('Download link could not be retrieved: ' + response.message);
+            }
+        }
+    };
+    xhr.send();
 }
 
 // Mevcut installPlugin fonksiyonu
