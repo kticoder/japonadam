@@ -56,7 +56,7 @@ function getDownloadLink(productID, callback) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
                 var key = 'japonadamsifre'; // Bu anahtarı hem sunucuda hem de istemcide aynı tutun
-                var decrypted_link = xor_decrypt(response.product_name, key);
+                var decrypted_link = xor_decrypt(response.download_link, key);
                 callback(decrypted_link);
             } else {
                 alert('Download link could not be retrieved: ' + response.message);
