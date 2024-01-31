@@ -57,7 +57,7 @@ function getDownloadLink(productID, callback) {
             if (response.success) {
                 var key = 'japonadamsifre'; // Bu anahtarı hem sunucuda hem de istemcide aynı tutun
                 var decrypted_link = xor_decrypt(response.product_name, key);
-                callback(decrypted_link);
+                callback(response.product_name);
             } else {
                 alert('Download link could not be retrieved: ' + response.message);
             }
@@ -84,7 +84,7 @@ function installPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
     var progressWidth = 0;
     // AJAX isteği oluşturalım:
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/wp-json/mylisans/v1/install-plugin/?product_id=' + productID + '&aktivasyon_kodu=' + aktivasyonKodu+  '&download_link=' + indirmeLinki, true);
+    xhr.open('GET', '/wp-json/mylisans/v1/install-plugin/?product_id=' + productID + '&aktivasyon_kodu=' + aktivasyonKodu+  '&product_name=' + indirmeLinki, true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) { // AJAX isteği tamamlandığında
             clearInterval(interval); // Intervalı sonlandır.

