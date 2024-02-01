@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.13
+Version: 1.1.14
 Author: Melih Çat & Ktidev
 */
 
@@ -262,6 +262,7 @@ class JaponAdamAktivasyon {
             $products = $all_products;
         }
         $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu);
+        $satin_alinan_site_destek = $satin_alinan_site . '/destek';
 
         #products içindeki permalinklerdeki domaini satın alınan site ile değiştir
         $products = array_map(function($product) use ($satin_alinan_site) {
@@ -348,10 +349,10 @@ class JaponAdamAktivasyon {
             <!-- Sayfa alt bilgi bölümü -->
             <div class="jp-footer flex justify-center items-center p-4 text-white">
                 <div class="jp-destek mr-4">
-                    <a href="https://japonadam.com/destek/" target="_blank">Destek</a>
+                    <a href="<?php echo esc_url($satin_alinan_site_destek); ?>" target="_blank" >Destek</a>
                 </div>
                 <div class="jp-sitemiz">
-                    <a href="https://japonadam.com/" target="_blank" >Sitemizi Ziyaret Edin</a>
+                    <a href="<?php echo esc_url($satin_alinan_site); ?>" target="_blank" >Sitemizi Ziyaret Edin</a>
                 </div>
             </div>
         </div>
