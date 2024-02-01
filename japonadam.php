@@ -219,6 +219,22 @@ class JaponAdamAktivasyon {
         return $data['success'];
     }
 
+    public function get_purchase_site($activation_code) {
+        $url = "https://japonadam.com/wp-json/mylisans/v1/get-purchase-site";
+        $response = wp_remote_get($url, array('timeout' => 15, 'body' => array('activation_code' => $activation_code)));
+
+        if (is_wp_error($response)) {
+            error_log("Hata: " . $response->get_error_message());
+        } else {
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+            if (wp_remote_retrieve_response_code($response) == 200) {
+                error_log("Satın Alınan Site: " . $data['satin_alinan_site']);
+            } else {
+                error_log("Hata: " . $body);
+            }
+        }
+    }
 
     public function display_jp_tut_page() {
         $all_products = $this->fetch_lisans_products();
@@ -245,6 +261,13 @@ class JaponAdamAktivasyon {
         } else {
             $products = $all_products;
         }
+        $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu);
+
+        #products içindeki permalinklerdeki domaini satın alınan site ile değiştir
+        $products = array_map(function($product) use ($satin_alinan_site) {
+            $product['permalink'] = str_replace('https://japonadam.com', $satin_alinan_site, $product['permalink']);
+            return $product;
+        }, $products);
         ?>
         <!-- Ana konteyner -->
         <div class="jp-tut rounded-2xl m-12" style="background-color: #262626;"> 
