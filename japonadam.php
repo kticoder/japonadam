@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.14
+Version: 1.1.15
 Author: Melih Çat & Ktidev
 */
 
@@ -230,6 +230,7 @@ class JaponAdamAktivasyon {
             $data = json_decode($body, true);
             if (wp_remote_retrieve_response_code($response) == 200) {
                 error_log("Satın Alınan Site: " . $data['satin_alinan_site']);
+                return $data['satin_alinan_site'];
             } else {
                 error_log("Hata: " . $body);
             }
