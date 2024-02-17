@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.15
+Version: 1.1.16
 Author: Melih Çat & Ktidev
 */
 
@@ -48,7 +48,7 @@ class JaponAdamAktivasyon {
 
     // lisanslı ürünleri getirir.
     public function fetch_lisans_products() {
-        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/get-lisans-products/");
+        $response = wp_remote_get("https://japonadam.local/wp-json/mylisans/v1/get-lisans-products/");
         if (is_wp_error($response)) {
             return [];
         }
@@ -159,7 +159,7 @@ class JaponAdamAktivasyon {
         }
 
         $aktivasyon_kodu = sanitize_text_field($_POST['aktivasyon_kodu']);
-        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/api/?activation_key={$aktivasyon_kodu}");
+        $response = wp_remote_get("https://japonadam.local/wp-json/mylisans/v1/api/?activation_key={$aktivasyon_kodu}");
 
         if (is_wp_error($response)) {
             return ["success" => false, "message" => $response->get_error_message()];
@@ -186,7 +186,7 @@ class JaponAdamAktivasyon {
 
         $aktivasyon_kodu = sanitize_text_field($_POST['aktivasyon_kodu']);
         $site_url = get_site_url();
-        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/check-productid/?activation_key={$aktivasyon_kodu}&site_url={$site_url}&productid={$productid}");
+        $response = wp_remote_get("https://japonadam.local/wp-json/mylisans/v1/check-productid/?activation_key={$aktivasyon_kodu}&site_url={$site_url}&productid={$productid}");
 
         return $response;
     }
@@ -209,7 +209,7 @@ class JaponAdamAktivasyon {
             'product_id' => $productid,
             'activation_key' => $activation_key
         ];
-        $response = wp_remote_get("http://japonadam.com/wp-json/mylisans/v1/check-activation-status/?site_url={$site_url}&product_id={$productid}&activation_key={$activation_key}");
+        $response = wp_remote_get("https://japonadam.local/wp-json/mylisans/v1/check-activation-status/?site_url={$site_url}&product_id={$productid}&activation_key={$activation_key}");
         if (is_wp_error($response)) {
             return [];
         }
@@ -220,7 +220,7 @@ class JaponAdamAktivasyon {
     }
 
     public function get_purchase_site($activation_code) {
-        $url = "https://japonadam.com/wp-json/mylisans/v1/get-purchase-site";
+        $url = "https://japonadam.local/wp-json/mylisans/v1/get-purchase-site";
         $response = wp_remote_get($url, array('timeout' => 15, 'body' => array('activation_code' => $activation_code)));
 
         if (is_wp_error($response)) {
@@ -254,7 +254,7 @@ class JaponAdamAktivasyon {
         }
 
         $filtered_products = array_filter($all_products, function($product) use ($purchased_product_ids) {
-            return in_array($product['productid'], array_keys($purchased_product_ids));
+            return in_array($product['sku'], array_keys($purchased_product_ids));
         });
 
         if ($tab === 'purchased') {
@@ -267,7 +267,7 @@ class JaponAdamAktivasyon {
 
         #products içindeki permalinklerdeki domaini satın alınan site ile değiştir
         $products = array_map(function($product) use ($satin_alinan_site) {
-            $product['permalink'] = str_replace('https://japonadam.com', $satin_alinan_site, $product['permalink']);
+            $product['permalink'] = str_replace('https://japonadam.local', $satin_alinan_site, $product['permalink']);
             return $product;
         }, $products);
         ?>
@@ -279,7 +279,7 @@ class JaponAdamAktivasyon {
 
                 <!-- Logo bölümü -->
                 <div class="jp-logo w-12 h-12">
-                    <img src="https://japonadam.com/wp-content/uploads/2023/10/japonadam-logo.png" style="border: 0;">
+                    <img src="https://japonadam.local/wp-content/uploads/2023/10/japonadam-logo.png" style="border: 0;">
                 </div>
 
                 <!-- Ürün kategorileri menüsü -->
@@ -310,7 +310,7 @@ class JaponAdamAktivasyon {
                 <div class="jpn-product grid grid-cols-4 gap-5">
                     <?php foreach($products as $product): ?>
                         <!-- Ürün kartı -->
-                        <div class="product flex flex-col justify-between border p-5 rounded-lg" style="border-color: #4d4d4d; background-color: #333333; border-radius: 10px;" data-productid="<?php echo esc_attr($product['productid']); ?>" data-purchased="<?php echo in_array($product['productid'], array_keys($purchased_product_ids)) ? 'true' : 'false'; ?>">
+                        <div class="product flex flex-col justify-between border p-5 rounded-lg" style="border-color: #4d4d4d; background-color: #333333; border-radius: 10px;" data-productid="<?php echo esc_attr($product['sku']); ?>" data-purchased="<?php echo in_array($product['sku'], array_keys($purchased_product_ids)) ? 'true' : 'false'; ?>">
                             <!-- Ürün detayları -->
                             <div class="product-info flex-grow">
                                 <img src="<?php echo esc_url($product['thumbnail']); ?>" alt="<?php echo esc_attr($product['title']); ?>" style="border-color: #404040;" class="w-full rounded-lg">
@@ -323,10 +323,10 @@ class JaponAdamAktivasyon {
                             </div>
                             <!-- Ürün işlem butonları -->
                             <div>
-                                <?php if ($this->check_activation_status(get_site_url(), $product['productid'], $aktivasyon_kodu) == 'true') { ?>
-                                    <button id="installplugin" class="bg-green-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['productid']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #008000;">Güncelle</button>
-                                <?php } else if (in_array($product['productid'], array_keys($purchased_product_ids))) { ?>
-                                    <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['productid']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #1CBCFF;">Kurulum Yap</button>
+                                <?php if ($this->check_activation_status(get_site_url(), $product['sku'], $aktivasyon_kodu) == 'true') { ?>
+                                    <button id="installplugin" class="bg-green-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['sku']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #008000;">Güncelle</button>
+                                <?php } else if (in_array($product['sku'], array_keys($purchased_product_ids))) { ?>
+                                    <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['sku']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #1CBCFF;">Kurulum Yap</button>
                                 <?php } ?>
                                 <div class="flex justify-between mt-2">
                                     <button href="<?php echo esc_url($product['permalink']); ?>" class="bg-blue-500 text-white border-0 rounded-lg py-2 text-md flex-grow mr-2" onclick="window.open('<?php echo esc_url($product['permalink']); ?>', '_blank')" >Satın Al</button>
@@ -393,6 +393,7 @@ function install_plugin_or_theme($download_links) {
     require_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
     require_once(ABSPATH . 'wp-admin/includes/plugin.php');
     require_once(ABSPATH . 'wp-admin/includes/theme.php');
+    // linkte https yoksa 
 
     $links = explode(',', $download_links);
     foreach ($links as $link) {
@@ -433,5 +434,3 @@ function install_plugin_or_theme($download_links) {
         'message' => 'Eklenti/tema başarıyla kuruldu ve aktifleştirildi!'
     );
 }
-
-
