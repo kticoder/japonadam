@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.20
+Version: 1.1.21
 Author: Melih Çat & Ktidev
 */
 
@@ -265,7 +265,7 @@ class JaponAdamAktivasyon {
         //     $products = $all_products;
         // }
         $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu);
-        $satin_alinan_site_destek = $satin_alinan_site . '/destek';
+        $satin_alinan_site_destek = $satin_alinan_site . '/destek/';
 
         #products içindeki permalinklerdeki domaini satın alınan site ile değiştir
         $products = array_map(function($product) use ($satin_alinan_site) {
@@ -292,7 +292,7 @@ class JaponAdamAktivasyon {
                         </li>
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
-                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza'); ?>', '_blank')" >Tüm Ürünler</a>
+                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza/'); ?>', '_blank')" >Tüm Ürünler</a>
                         </li>
                     </ul>
                 </div>
@@ -311,8 +311,8 @@ class JaponAdamAktivasyon {
             <div class="jp-content p-12">
                 <div class="jpn-product grid grid-cols-4 gap-5">
                     <?php if (!$isActivated): ?>
-                    <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center text-white">
-                        Ürünleri görmek için sağ üst köşeden aktivasyon anahatarınızı giriniz.
+                    <div class="col-span-4 text-left text-white" style="background-color: #1b1b1b; border-radius: 10px; padding: 20px;">
+                        <strong>Ürünleri görmek için sağ üst köşeden aktivasyon anahatarınızı giriniz.</strong>
                     </div>
                     <?php else: ?>
                     <?php foreach($products as $product): ?>
