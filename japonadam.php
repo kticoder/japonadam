@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.18
+Version: 1.1.19
 Author: Melih Çat & Ktidev
 */
 
@@ -288,13 +288,11 @@ class JaponAdamAktivasyon {
                 <div class="jp-tab-menu flex items-center text-white text-lg">
                     <ul class="flex gap-5 list-none p-0 m-0 items-center">
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
-                            <!-- <a href="?page=japon-adam&tab=all_products" class="hover:text-blue-100">Tüm Ürünler</a> -->
-                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza'); ?>', '_blank')" >Tüm Ürünler</button>
-
+                            <a href="?page=japon-adam&tab=purchased" class="hover:text-blue-100">Satın Aldıklarım</a>
                         </li>
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
-                            <a href="?page=japon-adam&tab=purchased" class="hover:text-blue-100">Satın Aldıklarım</a>
+                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza'); ?>', '_blank')" >Tüm Ürünler</button>
                         </li>
                     </ul>
                 </div>
