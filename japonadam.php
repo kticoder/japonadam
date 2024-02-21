@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.19
+Version: 1.1.20
 Author: Melih Çat & Ktidev
 */
 
@@ -292,7 +292,7 @@ class JaponAdamAktivasyon {
                         </li>
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
-                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza'); ?>', '_blank')" >Tüm Ürünler</button>
+                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza'); ?>', '_blank')" >Tüm Ürünler</a>
                         </li>
                     </ul>
                 </div>
@@ -311,15 +311,7 @@ class JaponAdamAktivasyon {
             <div class="jp-content p-12">
                 <div class="jpn-product grid grid-cols-4 gap-5">
                     <?php if (!$isActivated): ?>
-                    <style>
-                        .centered-message {
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            font-weight: bold;
-                        }
-                    </style>
-                    <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center text-white centered-message">
+                    <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center text-white">
                         Ürünleri görmek için sağ üst köşeden aktivasyon anahatarınızı giriniz.
                     </div>
                     <?php else: ?>
@@ -343,10 +335,6 @@ class JaponAdamAktivasyon {
                                 <?php } else if (in_array($product['sku'], array_keys($purchased_product_ids))) { ?>
                                     <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['sku']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #1CBCFF;">Kurulum Yap</button>
                                 <?php } ?>
-                                <div class="flex justify-between mt-2">
-                                    <button href="<?php echo esc_url($product['permalink']); ?>" class="bg-blue-500 text-white border-0 rounded-lg py-2 text-md flex-grow mr-2" onclick="window.open('<?php echo esc_url($product['permalink']); ?>', '_blank')" >Satın Al</button>
-                                    <a href="<?php echo esc_url($product['permalink']); ?>" class="bg-gray-400 text-white border-0 rounded-lg py-2 px-6 text-md hover:text-blue-100">İncele</a>
-                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
