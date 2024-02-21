@@ -3,7 +3,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.17
+Version: 1.1.18
 Author: Melih Çat & Ktidev
 */
 
@@ -245,7 +245,7 @@ class JaponAdamAktivasyon {
         $inputValue = $isActivated ? '•••••••••••••••••' : '';
         $buttonValue = $isActivated ? 'Aktivasyonu Kaldır' : 'Doğrula';
         $buttonColor = $isActivated ? '#bc2626' : '#1cbcff';
-        $tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'all_products';
+        $tab = "purchased";
         // Satın alınan ürünlerin productid'lerini al
         $purchased_product_ids = $this->fetch_purchased_products();
 
@@ -257,11 +257,13 @@ class JaponAdamAktivasyon {
             return in_array($product['sku'], array_keys($purchased_product_ids));
         });
 
-        if ($tab === 'purchased') {
-            $products = $filtered_products;
-        } else {
-            $products = $all_products;
-        }
+        $products = $filtered_products;
+
+        // if ($tab === 'purchased') {
+        //     $products = $filtered_products;
+        // } else {
+        //     $products = $all_products;
+        // }
         $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu);
         $satin_alinan_site_destek = $satin_alinan_site . '/destek';
 
@@ -286,7 +288,9 @@ class JaponAdamAktivasyon {
                 <div class="jp-tab-menu flex items-center text-white text-lg">
                     <ul class="flex gap-5 list-none p-0 m-0 items-center">
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
-                            <a href="?page=japon-adam&tab=all_products" class="hover:text-blue-100">Tüm Ürünler</a>
+                            <!-- <a href="?page=japon-adam&tab=all_products" class="hover:text-blue-100">Tüm Ürünler</a> -->
+                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza'); ?>', '_blank')" >Tüm Ürünler</button>
+
                         </li>
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
@@ -308,6 +312,19 @@ class JaponAdamAktivasyon {
             <!-- Ürün listesi bölümü -->
             <div class="jp-content p-12">
                 <div class="jpn-product grid grid-cols-4 gap-5">
+                    <?php if (!$isActivated): ?>
+                    <style>
+                        .centered-message {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            font-weight: bold;
+                        }
+                    </style>
+                    <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center text-white centered-message">
+                        Ürünleri görmek için sağ üst köşeden aktivasyon anahatarınızı giriniz.
+                    </div>
+                    <?php else: ?>
                     <?php foreach($products as $product): ?>
                         <!-- Ürün kartı -->
                         <div class="product flex flex-col justify-between border p-5 rounded-lg" style="border-color: #4d4d4d; background-color: #333333; border-radius: 10px;" data-productid="<?php echo esc_attr($product['sku']); ?>" data-purchased="<?php echo in_array($product['sku'], array_keys($purchased_product_ids)) ? 'true' : 'false'; ?>">
@@ -335,6 +352,7 @@ class JaponAdamAktivasyon {
                             </div>
                         </div>
                     <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
                 <!-- Kurulum durumu popup bilgisi -->
                 <div id="loadingPopup" class="fixed inset-0 flex items-center justify-center z-999 bg-black bg-opacity-50 hidden">
