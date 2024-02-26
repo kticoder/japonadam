@@ -1,278 +1,11 @@
 <?php
-
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.21
+Version: 1.1.22
 Author: Melih Çat & Ktidev
 */
-
-require 'plugin-update-checker/plugin-update-checker.php';
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
-
-$myUpdateChecker = PucFactory::buildUpdateChecker(
-	'https://github.com/kticoder/japonadam',
-	__FILE__,
-	'japonadam'
-);
-
-//Set the branch that contains the stable release.
-$myUpdateChecker->setBranch('main');
-$myUpdateChecker->getVcsApi()->enableReleaseAssets();
-
-class JaponAdamAktivasyon {
-
-    private $table_name;
-
-    public function __construct() {
-        global $wpdb;
-        $this->table_name = $wpdb->prefix . 'jpn';
-
-        add_action('admin_menu', [$this, 'japon_adam_menu']);
-        add_action('admin_enqueue_scripts', [$this, 'enqueue_custom_styles_scripts']);
-        add_action('init', [$this, 'create_jpn_table_if_not_exists']);
-    }
-
-    // Yönetici menüsüne "Japon Adam" sayfasını ekler.
-    public function japon_adam_menu() {
-        add_menu_page('Japon Adam', 'Japon Adam', 'manage_options', 'japon-adam', [$this, 'display_jp_tut_page'], 'dashicons-cart', 6);
-    }
-
-    // Özel stil ve scriptleri yalnızca "Japon Adam" sayfasında yükler.
-    public function enqueue_custom_styles_scripts($hook) {
-        if ($hook === 'toplevel_page_japon-adam') {
-            wp_enqueue_style('tailwind-css', 'https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css');
-            wp_enqueue_script('japonadam-js', plugins_url('jpn.js', __FILE__), [], false, true);
-        }
-    }
-
-    // lisanslı ürünleri getirir.
-    public function fetch_lisans_products() {
-        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/get-lisans-products/");
-        if (is_wp_error($response)) {
-            return [];
-        }
-
-        $body = wp_remote_retrieve_body($response);
-        return json_decode($body, true);
-    }
-
-    // Eğer mevcut değilse, veritabanında tabloyu oluşturur.
-    public function create_jpn_table_if_not_exists() {
-        global $wpdb;
-        $charset_collate = $wpdb->get_charset_collate();
-
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $this->table_name)) != $this->table_name) {
-            $sql = "CREATE TABLE $this->table_name (
-                id mediumint(9) NOT NULL AUTO_INCREMENT,
-                aktivasyon_kodu varchar(255) NOT NULL,
-                purchased_products LONGTEXT NOT NULL,
-                -- installed LONGTEXT DEFAULT '' NOT NULL,
-                PRIMARY KEY (id)
-            ) $charset_collate;";
-
-            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-            dbDelta($sql);
-
-            if ($wpdb->last_error !== '') {
-                error_log("DB Table Creation Error: " . $wpdb->last_error);
-                return $wpdb->last_error;
-            } else {
-                return 'Tablo başarılı bir şekilde oluşturuldu!';
-            }
-        }
-        return 'Tablo zaten var.';
-    }
-
-    /**
-     * Kullanıcının satın aldığı ürünleri veritabanından alır.
-     */
-    public function fetch_purchased_products() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'jpn';
-        $result = $wpdb->get_var("SELECT purchased_products FROM $table_name LIMIT 1");
-        if ($result) {
-            $decoded_result = json_decode($result, true);
-            return is_array($decoded_result) ? $decoded_result : [];
-        }
-        return [];
-    }
-
-    /**
-     * Aktivasyon kodunun veritabanında olup olmadığını kontrol eder.
-     * Eğer kod mevcut değilse yeni bir satır ekler.
-     */
-    public function check_and_insert_activation_code($aktivasyon_kodu, $purchased_products) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'jpn';
-
-        $existing_code = $wpdb->get_var($wpdb->prepare("SELECT aktivasyon_kodu FROM $table_name WHERE aktivasyon_kodu = %s", $aktivasyon_kodu));
-
-        if (!$existing_code) {
-            $inserted = $wpdb->insert($table_name, [
-                'aktivasyon_kodu' => $aktivasyon_kodu,
-                'purchased_products' => wp_json_encode($purchased_products)
-            ]);
-
-            if ($inserted === false) {
-                error_log("DB Insert Error: Veritabanına ekleme yapılamadı.");
-                return;
-            }
-
-            if($wpdb->last_error !== '') {
-                error_log("DB Insert Error: " . $wpdb->last_error);
-            }
-        }
-    }
-
-    /**
-     * Tüm aktivasyon kodlarını veritabanından siler.
-     */
-    public function remove_activation_code() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'jpn';
-        return $wpdb->query("TRUNCATE TABLE $table_name");
-    }
-
-    /**
-     * Aktivasyon kodunun geçerli olup olmadığını doğrular.
-     */
-    public function aktivasyon_kodu_getir() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'jpn';
-        
-        // Varsayılan olarak ilk satırdaki aktivasyon kodunu alıyor.
-        $result = $wpdb->get_var("SELECT aktivasyon_kodu FROM $table_name LIMIT 1");
-        
-        return $result;
-    }
-    public function verify_activation_code() {
-        global $wpdb;
-
-        if (isset($_POST['remove_activation']) && $_POST['remove_activation'] === '1') {
-            $this->remove_activation_code();
-            return ["success" => true, "message" => "Aktivasyon kaldırıldı."];
-        }
-
-        if (!isset($_POST['aktivasyon_kodu'])) {
-            return null;
-        }
-
-        $aktivasyon_kodu = sanitize_text_field($_POST['aktivasyon_kodu']);
-        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/api/?activation_key={$aktivasyon_kodu}");
-
-        if (is_wp_error($response)) {
-            return ["success" => false, "message" => $response->get_error_message()];
-        }
-
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        if (!isset($data['valid']) || !$data['valid']) {
-            return $data;
-        }
-
-        $this->check_and_insert_activation_code(
-            $aktivasyon_kodu,
-            isset($data['purchased_products']) ? $data['purchased_products'] : []
-        );
-
-        return $data;
-    }
-    public function is_product_installed($productid) {
-        if (!isset($_POST['aktivasyon_kodu'])) {
-            return null;
-        }
-
-        $aktivasyon_kodu = sanitize_text_field($_POST['aktivasyon_kodu']);
-        $site_url = get_site_url();
-        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/check-productid/?activation_key={$aktivasyon_kodu}&site_url={$site_url}&productid={$productid}");
-
-        return $response;
-    }
-    /**
-     * Aktivasyon kodunun veritabanında olup olmadığını kontrol eder.
-     */
-    public function is_activation_code_exists() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'jpn';
-        $count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
-        return $count > 0;
-    }
-    
-    public function check_activation_status($site_url, $productid, $activation_key) {
-        $site_url = get_site_url();
-        // https varsa http'ye çevir
-        $site_url = str_replace('https://', 'http://', $site_url);
-        $parametreler = [
-            'site_url' => $site_url,
-            'product_id' => $productid,
-            'activation_key' => $activation_key
-        ];
-        $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/check-activation-status/?site_url={$site_url}&product_id={$productid}&activation_key={$activation_key}");
-        if (is_wp_error($response)) {
-            return [];
-        }
-
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        return $data['success'];
-    }
-
-    public function get_purchase_site($activation_code) {
-        $url = "https://japonadam.com/wp-json/mylisans/v1/get-purchase-site";
-        $response = wp_remote_get($url, array('timeout' => 15, 'body' => array('activation_code' => $activation_code)));
-
-        if (is_wp_error($response)) {
-            error_log("Hata: " . $response->get_error_message());
-        } else {
-            $body = wp_remote_retrieve_body($response);
-            $data = json_decode($body, true);
-            if (wp_remote_retrieve_response_code($response) == 200) {
-                error_log("Satın Alınan Site: " . $data['satin_alinan_site']);
-                return $data['satin_alinan_site'];
-            } else {
-                error_log("Hata: " . $body);
-            }
-        }
-    }
-
-    public function display_jp_tut_page() {
-        $all_products = $this->fetch_lisans_products();
-        $result = $this->verify_activation_code();
-        $aktivasyon_kodu = $this->aktivasyon_kodu_getir();
-        $isActivated = $this->is_activation_code_exists();
-        $inputValue = $isActivated ? '•••••••••••••••••' : '';
-        $buttonValue = $isActivated ? 'Aktivasyonu Kaldır' : 'Doğrula';
-        $buttonColor = $isActivated ? '#bc2626' : '#1cbcff';
-        $tab = "purchased";
-        // Satın alınan ürünlerin productid'lerini al
-        $purchased_product_ids = $this->fetch_purchased_products();
-
-        if (!is_array($purchased_product_ids)) {
-            $purchased_product_ids = [];
-        }
-
-        $filtered_products = array_filter($all_products, function($product) use ($purchased_product_ids) {
-            return in_array($product['sku'], array_keys($purchased_product_ids));
-        });
-
-        $products = $filtered_products;
-
-        // if ($tab === 'purchased') {
-        //     $products = $filtered_products;
-        // } else {
-        //     $products = $all_products;
-        // }
-        $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu);
-        $satin_alinan_site_destek = $satin_alinan_site . '/destek/';
-
-        #products içindeki permalinklerdeki domaini satın alınan site ile değiştir
-        $products = array_map(function($product) use ($satin_alinan_site) {
-            $product['permalink'] = str_replace('https://japonadam.com', $satin_alinan_site, $product['permalink']);
-            return $product;
-        }, $products);
-        ?>
+ require "\x70\x6c\x75\147\x69\156\x2d\165\160\x64\141\x74\x65\x2d\143\x68\x65\x63\x6b\145\x72\57\x70\154\x75\x67\151\156\55\x75\160\144\x61\x74\145\55\143\150\x65\x63\x6b\x65\x72\x2e\160\x68\160"; use YahnisElsts\PluginUpdateChecker\v5\PucFactory; goto QNLSO; Goocg: $myUpdateChecker->getVcsApi()->enableReleaseAssets(); goto JL808; FbLKi: function japonadam_add_settings_link($links) { $settings_link = "\x3c\141\x20\x68\x72\145\x66\x3d\42\141\x64\x6d\x69\x6e\56\160\x68\x70\x3f\x70\141\x67\145\75\152\x61\x70\x6f\x6e\55\x61\x64\141\155\x22\76" . __("\x41\x79\x61\x72\154\141\x72") . "\x3c\x2f\141\76"; array_unshift($links, $settings_link); return $links; } goto uLtYV; OBOGZ: new JaponAdamAktivasyon(); goto j2KkE; uLtYV: add_filter("\160\154\x75\x67\151\156\x5f\141\143\x74\151\x6f\x6e\x5f\x6c\x69\156\153\x73\137" . plugin_basename(__FILE__), "\152\x61\x70\157\156\141\x64\x61\x6d\x5f\141\x64\x64\137\163\x65\x74\x74\x69\x6e\147\163\137\154\x69\156\x6b"); goto lVrVK; q_OI6: function xor_decrypt($input, $key) { $input = base64_decode($input); $output = ''; for ($i = 0; $i < strlen($input); $i++) { $output .= chr(ord($input[$i]) ^ ord($key[$i % strlen($key)])); } return $output; } goto ZKWHh; JL808: class JaponAdamAktivasyon { private $table_name; public function __construct() { global $wpdb; $this->table_name = $wpdb->prefix . "\x6a\160\x6e"; add_action("\x61\x64\155\x69\x6e\137\x6d\145\x6e\165", array($this, "\x6a\x61\x70\x6f\x6e\137\x61\x64\141\155\x5f\x6d\x65\x6e\x75")); add_action("\141\144\x6d\x69\x6e\137\x65\156\x71\165\x65\x75\x65\137\163\143\162\x69\x70\164\163", array($this, "\x65\x6e\161\165\x65\x75\145\x5f\143\x75\x73\164\157\155\x5f\163\164\171\x6c\145\163\137\x73\x63\162\151\160\164\163")); add_action("\x69\156\x69\164", array($this, "\x63\x72\x65\x61\164\145\137\152\x70\x6e\137\164\x61\142\x6c\x65\x5f\x69\146\x5f\x6e\157\x74\x5f\145\170\x69\163\x74\163")); } public function japon_adam_menu() { add_menu_page("\x4a\141\160\157\x6e\40\101\144\141\x6d", "\x4a\141\160\x6f\156\40\x41\x64\x61\155", "\x6d\x61\156\x61\147\145\x5f\x6f\160\x74\151\x6f\x6e\163", "\x6a\141\160\157\156\x2d\x61\x64\141\155", array($this, "\x64\x69\163\x70\154\x61\x79\137\x6a\x70\x5f\x74\x75\164\x5f\160\141\147\x65"), "\144\141\x73\150\151\x63\157\156\x73\x2d\x63\141\162\x74", 6); } public function enqueue_custom_styles_scripts($hook) { if ($hook === "\x74\157\x70\154\x65\166\x65\154\x5f\x70\141\147\x65\137\x6a\x61\160\157\156\x2d\x61\144\141\155") { wp_enqueue_style("\164\x61\151\154\x77\151\156\144\55\x63\163\163", "\x68\x74\x74\160\x73\x3a\x2f\57\x63\144\156\x6a\163\x2e\143\x6c\x6f\165\x64\x66\x6c\x61\162\145\x2e\143\157\155\x2f\x61\x6a\141\170\x2f\154\x69\x62\x73\x2f\x74\141\151\154\167\x69\156\144\143\163\163\57\x32\56\x32\x2e\x31\x39\57\164\x61\151\154\x77\x69\x6e\x64\x2e\155\151\156\56\143\x73\163"); wp_enqueue_script("\152\141\x70\x6f\156\141\144\x61\x6d\x2d\152\163", plugins_url("\x6a\160\x6e\x2e\x6a\163", __FILE__), array(), false, true); } } public function fetch_lisans_products() { $base64_url = "\141\110\122\x30\x63\110\115\66\114\171\71\x71\x59\130\x42\166\142\155\x46\x6b\131\x57\60\165\131\62\x39\164\x4c\63\144\x77\x4c\x57\x70\172\142\62\64\x76\142\x58\x6c\x73\x61\x58\116\150\x62\x6e\115\166\144\x6a\x45\x76\x61\x6e\102\165\x4c\130\126\171\x64\127\64\x3d"; $decoded_url = base64_decode($base64_url); $response = wp_remote_get($decoded_url); if (is_wp_error($response)) { return array(); } $body = wp_remote_retrieve_body($response); return json_decode($body, true); } public function create_jpn_table_if_not_exists() { global $wpdb; $charset_collate = $wpdb->get_charset_collate(); if ($wpdb->get_var($wpdb->prepare("\123\110\x4f\127\x20\x54\101\x42\x4c\105\x53\40\x4c\111\x4b\105\40\x25\x73", $this->table_name)) != $this->table_name) { $sql = "\103\122\x45\101\124\x45\x20\124\x41\x42\x4c\x45\40{$this->table_name}\40\x28\12\x20\40\40\40\x20\40\x20\x20\x20\40\40\40\x20\x20\x20\40\151\x64\x20\155\x65\x64\151\x75\155\151\x6e\x74\x28\x39\x29\40\116\117\x54\x20\116\x55\114\x4c\x20\x41\x55\124\x4f\137\x49\x4e\103\122\x45\x4d\x45\116\124\x2c\12\40\40\x20\40\40\x20\40\x20\40\x20\40\40\x20\x20\x20\40\x61\x6b\x74\151\166\141\163\x79\x6f\156\x5f\x6b\157\144\165\x20\166\x61\162\143\x68\141\162\50\x32\x35\65\x29\x20\x4e\x4f\124\40\x4e\x55\114\114\54\xa\40\x20\40\x20\x20\x20\40\40\x20\x20\40\x20\40\40\x20\40\160\x75\162\143\150\x61\163\x65\x64\137\160\162\x6f\x64\x75\x63\x74\163\40\114\x4f\116\x47\124\105\130\124\40\x4e\117\124\40\116\x55\114\x4c\x2c\12\40\40\40\40\40\40\40\x20\x20\x20\40\40\40\x20\x20\40\x2d\x2d\x20\151\x6e\x73\164\x61\x6c\x6c\145\144\40\114\117\116\x47\x54\x45\130\124\x20\104\x45\106\101\x55\x4c\124\40\47\47\40\x4e\117\x54\40\116\125\114\114\x2c\12\40\x20\x20\x20\x20\40\x20\x20\x20\40\x20\x20\x20\x20\x20\40\x50\122\111\x4d\x41\122\131\40\113\105\x59\40\x28\x69\144\x29\xa\40\x20\x20\x20\x20\40\40\x20\40\40\40\40\x29\40{$charset_collate}\x3b"; require_once ABSPATH . "\x77\x70\55\141\144\x6d\x69\x6e\x2f\151\x6e\x63\x6c\165\x64\x65\x73\57\165\160\x67\x72\x61\x64\145\x2e\160\x68\160"; dbDelta($sql); if ($wpdb->last_error !== '') { error_log("\x44\102\x20\124\141\142\x6c\145\40\103\x72\x65\x61\x74\x69\157\156\40\x45\162\x72\x6f\x72\72\x20" . $wpdb->last_error); return $wpdb->last_error; } else { return "\124\141\x62\x6c\x6f\40\142\141\xc5\x9f\141\162\xc4\261\154\xc4\xb1\x20\142\151\x72\40\305\x9f\145\153\151\x6c\144\145\x20\x6f\x6c\165\305\237\164\165\162\x75\154\x64\x75\x21"; } } return "\x54\x61\142\154\157\40\172\141\x74\145\x6e\40\x76\141\162\56"; } public function fetch_purchased_products() { global $wpdb; $table_name = $wpdb->prefix . "\152\x70\x6e"; $result = $wpdb->get_var("\123\105\114\x45\103\x54\x20\160\165\162\143\x68\x61\x73\x65\x64\137\160\162\x6f\144\x75\143\164\163\x20\106\122\117\115\40{$table_name}\x20\114\111\115\x49\124\40\61"); if ($result) { $decoded_result = json_decode($result, true); return is_array($decoded_result) ? $decoded_result : array(); } return array(); } public function check_and_insert_activation_code($aktivasyon_kodu, $purchased_products) { global $wpdb; $table_name = $wpdb->prefix . "\x6a\160\x6e"; $existing_code = $wpdb->get_var($wpdb->prepare("\x53\105\114\x45\103\x54\x20\x61\153\x74\151\166\x61\x73\171\x6f\x6e\x5f\x6b\157\x64\x75\x20\x46\122\117\115\40{$table_name}\x20\127\110\105\x52\105\x20\x61\153\164\151\x76\x61\163\x79\157\156\x5f\153\157\144\165\x20\x3d\40\45\x73", $aktivasyon_kodu)); if (!$existing_code) { $inserted = $wpdb->insert($table_name, array("\x61\x6b\164\x69\166\x61\163\171\157\x6e\x5f\153\157\144\165" => $aktivasyon_kodu, "\x70\x75\x72\143\x68\x61\163\145\144\x5f\160\162\157\144\x75\x63\x74\x73" => wp_json_encode($purchased_products))); if ($inserted === false) { error_log("\104\x42\x20\111\156\x73\x65\x72\164\x20\x45\162\x72\x6f\x72\x3a\x20\126\145\x72\151\x74\141\142\141\156\xc4\xb1\156\141\x20\x65\153\154\x65\x6d\x65\x20\171\x61\160\xc4\xb1\154\141\x6d\141\144\xc4\261\x2e"); return; } if ($wpdb->last_error !== '') { error_log("\104\102\x20\x49\x6e\163\145\x72\x74\x20\105\162\162\157\162\x3a\40" . $wpdb->last_error); } } } public function remove_activation_code() { global $wpdb; $table_name = $wpdb->prefix . "\152\x70\x6e"; return $wpdb->query("\124\122\125\x4e\103\x41\124\x45\40\124\x41\102\114\x45\40{$table_name}"); } public function aktivasyon_kodu_getir() { global $wpdb; $table_name = $wpdb->prefix . "\152\x70\x6e"; $result = $wpdb->get_var("\x53\x45\x4c\105\103\124\40\x61\153\x74\x69\x76\141\163\171\x6f\x6e\137\x6b\157\144\165\x20\106\x52\x4f\115\40{$table_name}\x20\114\x49\x4d\111\x54\x20\x31"); return $result; } public function verify_activation_code() { global $wpdb; if (isset($_POST["\x72\x65\155\157\x76\145\137\141\x63\164\x69\x76\x61\x74\151\x6f\156"]) && $_POST["\162\x65\x6d\x6f\166\145\137\141\143\164\x69\x76\141\x74\x69\x6f\x6e"] === "\x31") { $this->remove_activation_code(); return array("\163\x75\x63\143\145\x73\163" => true, "\155\x65\163\x73\141\147\x65" => "\101\x6b\x74\x69\166\x61\163\171\157\156\40\153\141\154\144\304\xb1\162\xc4\261\154\x64\304\xb1\x2e"); } if (!isset($_POST["\x61\x6b\x74\151\x76\141\x73\x79\157\156\x5f\x6b\x6f\144\x75"])) { return null; } $aktivasyon_kodu = sanitize_text_field($_POST["\x61\x6b\x74\x69\x76\x61\163\171\157\156\137\153\x6f\144\x75"]); $response = wp_remote_get("\150\x74\164\160\x73\x3a\x2f\57\x6a\x61\160\x6f\x6e\141\x64\141\x6d\56\x63\157\x6d\57\x77\160\55\152\x73\157\156\x2f\x6d\x79\154\x69\x73\x61\x6e\163\57\x76\x31\x2f\141\x70\151\57\x3f\x61\143\x74\x69\166\141\x74\151\x6f\x6e\x5f\x6b\x65\171\x3d{$aktivasyon_kodu}"); if (is_wp_error($response)) { return array("\163\x75\143\143\145\163\163" => false, "\x6d\145\163\163\x61\x67\145" => $response->get_error_message()); } $body = wp_remote_retrieve_body($response); $data = json_decode($body, true); if (!isset($data["\166\x61\154\x69\144"]) || !$data["\166\x61\154\151\144"]) { return $data; } $this->check_and_insert_activation_code($aktivasyon_kodu, isset($data["\160\x75\162\x63\150\x61\x73\145\144\137\160\x72\x6f\x64\165\143\x74\x73"]) ? $data["\160\165\x72\143\x68\141\163\x65\x64\137\160\162\157\x64\x75\143\164\x73"] : array()); return $data; } public function is_product_installed($productid) { if (!isset($_POST["\x61\153\x74\x69\166\141\x73\171\157\x6e\137\153\x6f\144\165"])) { return null; } $aktivasyon_kodu = sanitize_text_field($_POST["\141\153\164\x69\166\x61\163\171\x6f\x6e\137\x6b\x6f\144\165"]); $site_url = get_site_url(); $response = wp_remote_get("\x68\164\x74\160\x73\x3a\x2f\x2f\x6a\141\x70\157\x6e\x61\x64\141\x6d\x2e\143\x6f\x6d\57\167\160\55\x6a\163\157\x6e\x2f\x6d\x79\154\151\163\x61\156\163\57\166\61\x2f\143\x68\145\x63\153\x2d\160\162\x6f\144\165\143\x74\x69\144\57\77\x61\143\x74\151\x76\x61\164\x69\x6f\156\x5f\x6b\145\x79\75{$aktivasyon_kodu}\x26\x73\x69\x74\145\137\165\162\x6c\75{$site_url}\46\x70\x72\x6f\144\165\143\x74\x69\x64\x3d{$productid}"); return $response; } public function is_activation_code_exists() { global $wpdb; $table_name = $wpdb->prefix . "\x6a\160\x6e"; $count = $wpdb->get_var("\x53\105\114\105\x43\x54\x20\103\117\125\x4e\x54\x28\x2a\x29\40\106\122\117\115\40{$table_name}"); return $count > 0; } public function check_activation_status($site_url, $productid, $activation_key) { $site_url = get_site_url(); $site_url = str_replace("\x68\x74\x74\x70\x73\x3a\x2f\x2f", "\x68\x74\x74\x70\72\57\x2f", $site_url); $parametreler = array("\x73\151\164\145\137\x75\162\154" => $site_url, "\x70\x72\157\144\x75\143\164\137\x69\144" => $productid, "\x61\x63\164\151\x76\x61\x74\x69\157\x6e\x5f\153\145\171" => $activation_key); $response = wp_remote_get("\x68\x74\x74\x70\x73\x3a\x2f\57\x6a\x61\160\157\x6e\141\144\141\155\x2e\x63\x6f\x6d\57\167\x70\x2d\152\163\157\156\x2f\x6d\171\x6c\151\x73\141\x6e\x73\57\x76\61\57\143\150\x65\143\153\55\x61\x63\x74\151\166\141\164\151\157\x6e\x2d\x73\164\x61\164\x75\x73\x2f\x3f\163\x69\164\x65\x5f\165\x72\x6c\x3d{$site_url}\x26\160\162\157\x64\165\143\x74\x5f\151\x64\75{$productid}\46\x61\x63\164\151\x76\x61\164\x69\x6f\156\137\153\145\x79\75{$activation_key}"); if (is_wp_error($response)) { return array(); } $body = wp_remote_retrieve_body($response); $data = json_decode($body, true); return $data["\163\x75\x63\143\145\x73\163"]; } public function get_purchase_site($activation_code) { $url = "\x68\164\164\160\163\x3a\57\x2f\x6a\x61\160\157\x6e\x61\144\141\x6d\56\x63\157\x6d\x2f\167\160\x2d\x6a\163\x6f\x6e\57\155\x79\154\x69\163\x61\x6e\x73\57\x76\x31\x2f\147\145\164\55\x70\x75\162\x63\x68\x61\x73\145\55\163\x69\164\145"; $response = wp_remote_get($url, array("\x74\151\155\145\157\x75\164" => 15, "\142\157\x64\x79" => array("\x61\x63\164\x69\166\x61\x74\151\157\156\x5f\143\157\x64\145" => $activation_code))); if (is_wp_error($response)) { error_log("\x48\x61\x74\x61\x3a\x20" . $response->get_error_message()); } else { $body = wp_remote_retrieve_body($response); $data = json_decode($body, true); if (wp_remote_retrieve_response_code($response) == 200) { error_log("\x53\x61\164\xc4\xb1\x6e\x20\101\154\xc4\261\x6e\141\x6e\x20\x53\x69\x74\145\72\40" . $data["\x73\x61\x74\x69\156\137\141\x6c\151\156\x61\156\137\x73\x69\164\145"]); return $data["\163\141\164\x69\156\137\141\154\x69\156\141\x6e\137\x73\x69\164\145"]; } else { error_log("\110\x61\164\x61\72\40" . $body); } } } public function display_jp_tut_page() { $all_products = $this->fetch_lisans_products(); $result = $this->verify_activation_code(); $aktivasyon_kodu = $this->aktivasyon_kodu_getir(); $isActivated = $this->is_activation_code_exists(); $inputValue = $isActivated ? "\xe2\200\xa2\342\200\242\xe2\x80\xa2\xe2\x80\xa2\342\200\xa2\xe2\x80\242\xe2\200\242\342\x80\xa2\xe2\200\xa2\xe2\x80\xa2\342\200\242\342\200\242\342\x80\242\342\x80\xa2\342\x80\242\342\x80\242\342\200\xa2" : ''; $buttonValue = $isActivated ? "\101\x6b\164\151\x76\141\x73\171\x6f\156\x75\40\x4b\x61\x6c\144\304\xb1\162" : "\x44\157\304\x9f\162\x75\154\141"; $buttonColor = $isActivated ? "\43\142\143\x32\x36\x32\66" : "\x23\61\x63\x62\x63\146\x66"; $tab = "\160\x75\162\x63\150\x61\x73\x65\x64"; $purchased_product_ids = $this->fetch_purchased_products(); if (!is_array($purchased_product_ids)) { $purchased_product_ids = array(); } $filtered_products = array_filter($all_products, function ($product) use($purchased_product_ids) { return in_array($product["\163\x6b\165"], array_keys($purchased_product_ids)); }); $products = $filtered_products; $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu); $satin_alinan_site_destek = $satin_alinan_site . "\x2f\144\145\x73\164\145\x6b\57"; $products = array_map(function ($product) use($satin_alinan_site) { $product["\160\145\162\155\141\x6c\151\x6e\x6b"] = str_replace("\150\164\164\x70\163\72\57\x2f\x6a\x61\x70\x6f\x6e\141\144\x61\x6d\x2e\143\x6f\x6d", $satin_alinan_site, $product["\x70\x65\162\x6d\x61\154\x69\156\x6b"]); return $product; }, $products); ?>
         <!-- Ana konteyner -->
         <div class="jp-tut rounded-2xl m-12" style="background-color: #262626;"> 
 
@@ -292,7 +25,8 @@ class JaponAdamAktivasyon {
                         </li>
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
-                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza/'); ?>', '_blank')" >Tüm Ürünler</a>
+                            <a  class="hover:text-blue-100" onclick="window.open('<?php  echo esc_url($satin_alinan_site . "\x2f\x6d\141\x67\141\172\141\x2f"); ?>
+', '_blank')" >Tüm Ürünler</a>
                         </li>
                     </ul>
                 </div>
@@ -300,9 +34,14 @@ class JaponAdamAktivasyon {
                 <!-- Aktivasyon kodu giriş formu -->
                 <div class="jp-aktivasyon flex items-center ">
                     <form class="flex gap-2 w-full" method="post">
-                        <input type="text" id="aktivasyonInput" name="aktivasyon_kodu" value="<?php echo esc_attr($inputValue); ?>" placeholder="Aktivasyon kodunuz" class="py-2 px-3 border-0 rounded text-sm flex-grow" <?php echo $isActivated ? 'readonly' : ''; ?>>
-                        <input type="hidden" name="remove_activation" value="<?php echo $isActivated ? '1' : '0'; ?>">
-                        <input type="submit" id="aktivasyonButton" value="<?php echo esc_attr($buttonValue); ?>" style="background-color: <?php echo esc_attr($buttonColor); ?>;" class="py-2 px-4 border-0 text-sm text-white cursor-pointer rounded">
+                        <input type="text" id="aktivasyonInput" name="aktivasyon_kodu" value="<?php  echo esc_attr($inputValue); ?>
+" placeholder="Aktivasyon kodunuz" class="py-2 px-3 border-0 rounded text-sm flex-grow" <?php  echo $isActivated ? "\x72\x65\141\x64\x6f\156\154\x79" : ''; ?>
+>
+                        <input type="hidden" name="remove_activation" value="<?php  echo $isActivated ? "\x31" : "\60"; ?>
+">
+                        <input type="submit" id="aktivasyonButton" value="<?php  echo esc_attr($buttonValue); ?>
+" style="background-color: <?php  echo esc_attr($buttonColor); ?>
+;" class="py-2 px-4 border-0 text-sm text-white cursor-pointer rounded">
                     </form>
                 </div>
             </div>
@@ -310,35 +49,47 @@ class JaponAdamAktivasyon {
             <!-- Ürün listesi bölümü -->
             <div class="jp-content p-12">
                 <div class="jpn-product grid grid-cols-4 gap-5">
-                    <?php if (!$isActivated): ?>
+                    <?php  if (!$isActivated) { ?>
                     <div class="col-span-4 text-left text-white" style="background-color: #1b1b1b; border-radius: 10px; padding: 20px;">
                         <strong>Ürünleri görmek için sağ üst köşeden aktivasyon anahatarınızı giriniz.</strong>
                     </div>
-                    <?php else: ?>
-                    <?php foreach($products as $product): ?>
+                    <?php  } else { ?>
+                    <?php  foreach ($products as $product) { ?>
                         <!-- Ürün kartı -->
-                        <div class="product flex flex-col justify-between border p-5 rounded-lg" style="border-color: #4d4d4d; background-color: #333333; border-radius: 10px;" data-productid="<?php echo esc_attr($product['sku']); ?>" data-purchased="<?php echo in_array($product['sku'], array_keys($purchased_product_ids)) ? 'true' : 'false'; ?>">
+                        <div class="product flex flex-col justify-between border p-5 rounded-lg" style="border-color: #4d4d4d; background-color: #333333; border-radius: 10px;" data-productid="<?php  echo esc_attr($product["\x73\153\165"]); ?>
+" data-purchased="<?php  echo in_array($product["\x73\153\x75"], array_keys($purchased_product_ids)) ? "\164\x72\165\x65" : "\146\x61\154\x73\x65"; ?>
+">
                             <!-- Ürün detayları -->
                             <div class="product-info flex-grow">
-                                <img src="<?php echo esc_url($product['thumbnail']); ?>" alt="<?php echo esc_attr($product['title']); ?>" style="border-color: #404040;" class="w-full rounded-lg">
+                                <img src="<?php  echo esc_url($product["\x74\150\x75\155\142\156\141\151\154"]); ?>
+" alt="<?php  echo esc_attr($product["\x74\151\164\x6c\x65"]); ?>
+" style="border-color: #404040;" class="w-full rounded-lg">
                                 <div class="flex justify-between text-sm text-gray-400 mt-2 mb-1">
-                                    <p>🔥 <?php echo esc_html($product['indirme_sayaci']); ?> 
-                                    <p># <?php echo esc_html($product['veri_tipi']); ?></p>
+                                    <p>🔥 <?php  echo esc_html($product["\151\x6e\x64\151\162\x6d\x65\x5f\163\141\171\141\x63\151"]); ?>
+ 
+                                    <p># <?php  echo esc_html($product["\166\x65\162\151\137\164\151\x70\151"]); ?>
+</p>
                                 </div>
-                                <h3 class="text-white text-xl mb-1"><?php echo esc_html($product['title']); ?></h3>
-                                <p class="text-gray-400 text-md mb-4"><?php echo esc_html($product['short_description']); ?></p>
+                                <h3 class="text-white text-xl mb-1"><?php  echo esc_html($product["\x74\151\164\154\145"]); ?>
+</h3>
+                                <p class="text-gray-400 text-md mb-4"><?php  echo esc_html($product["\163\150\x6f\x72\x74\x5f\x64\145\163\x63\162\x69\x70\164\151\157\156"]); ?>
+</p>
                             </div>
                             <!-- Ürün işlem butonları -->
                             <div>
-                                <?php if ($this->check_activation_status(get_site_url(), $product['sku'], $aktivasyon_kodu) == 'true') { ?>
-                                    <button id="installplugin" class="bg-green-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['sku']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #008000;">Güncelle</button>
-                                <?php } else if (in_array($product['sku'], array_keys($purchased_product_ids))) { ?>
-                                    <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['sku']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #1CBCFF;">Kurulum Yap</button>
-                                <?php } ?>
+                                <?php  if ($this->check_activation_status(get_site_url(), $product["\x73\153\165"], $aktivasyon_kodu) == "\x74\x72\165\145") { ?>
+                                    <button id="installplugin" class="bg-green-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php  echo esc_attr($product["\x73\x6b\165"]); ?>
+" onclick="checkAndInstallPlugin(this,'<?php  echo esc_attr($aktivasyon_kodu); ?>
+')" style="background-color: #008000;">Güncelle</button>
+                                <?php  } else { if (in_array($product["\163\x6b\165"], array_keys($purchased_product_ids))) { ?>
+                                    <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php  echo esc_attr($product["\x73\153\x75"]); ?>
+" onclick="checkAndInstallPlugin(this,'<?php  echo esc_attr($aktivasyon_kodu); ?>
+')" style="background-color: #1CBCFF;">Kurulum Yap</button>
+                                <?php  } } ?>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                    <?php endif; ?>
+                    <?php  } ?>
+                    <?php  } ?>
                 </div>
                 <!-- Kurulum durumu popup bilgisi -->
                 <div id="loadingPopup" class="fixed inset-0 flex items-center justify-center z-999 bg-black bg-opacity-50 hidden">
@@ -354,87 +105,14 @@ class JaponAdamAktivasyon {
             <!-- Sayfa alt bilgi bölümü -->
             <div class="jp-footer flex justify-center items-center p-4 text-white">
                 <div class="jp-destek mr-4">
-                    <a href="<?php echo esc_url($satin_alinan_site_destek); ?>" target="_blank" >Destek</a>
+                    <a href="<?php  echo esc_url($satin_alinan_site_destek); ?>
+" target="_blank" >Destek</a>
                 </div>
                 <div class="jp-sitemiz">
-                    <a href="<?php echo esc_url($satin_alinan_site); ?>" target="_blank" >Sitemizi Ziyaret Edin</a>
+                    <a href="<?php  echo esc_url($satin_alinan_site); ?>
+" target="_blank" >Sitemizi Ziyaret Edin</a>
                 </div>
             </div>
         </div>
 
-        <?php
-    }
-}
-
-// Eklenti çalıştırılırken sınıfın bir örneğini oluşturma
-new JaponAdamAktivasyon();
-add_action('rest_api_init', function () {
-    register_rest_route('mylisans/v1', '/install-plugin/', array(
-        'methods' => 'GET',
-        'callback' => 'install_plugin_endpoint_callback',
-        'permission_callback' => '__return_true'
-    ));
-});
-
-function xor_decrypt($input, $key) {
-    $input = base64_decode($input);
-    $output = '';
-    for ($i = 0; $i < strlen($input); $i++) {
-        $output .= chr(ord($input[$i]) ^ ord($key[$i % strlen($key)]));
-    }
-    return $output;
-}
-
-function install_plugin_endpoint_callback($request) {
-    $download_links = $request->get_param('product_name');
-    $download_links = xor_decrypt($download_links, 'japonadamsifre');
-    return install_plugin_or_theme($download_links);
-}
-
-function install_plugin_or_theme($download_links) {
-    require_once(ABSPATH . 'wp-admin/includes/file.php');
-    require_once(ABSPATH . 'wp-admin/includes/plugin-install.php');
-    require_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
-    require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    require_once(ABSPATH . 'wp-admin/includes/theme.php');
-    // linkte https yoksa 
-
-    $links = explode(',', $download_links);
-    foreach ($links as $link) {
-        $link = trim($link);
-        if (strpos($link, 'theme') !== false) {  // Tema linklerinde 'theme' kelimesini kontrol ediyoruz
-            $skin = new WP_Ajax_Upgrader_Skin();
-            $upgrader = new Theme_Upgrader($skin);
-            $installed = $upgrader->install($link);
-            if (!$installed || is_wp_error($installed)) {
-                return array(
-                    'success' => false,
-                    'message' => 'Tema kurulamadı: ' . $skin->get_errors()->get_error_message()
-                );
-            }
-        } else {  // Eğer 'theme' kelimesi yoksa, eklenti olarak kabul ediyoruz
-            $skin = new WP_Ajax_Upgrader_Skin();
-            $upgrader = new Plugin_Upgrader($skin);
-            $installed = $upgrader->install($link);
-            if (!$installed || is_wp_error($installed)) {
-                return array(
-                    'success' => false,
-                    'message' => 'Eklenti kurulamadı: ' . $skin->get_errors()->get_error_message()
-                );
-            }
-
-            $plugin_file = $upgrader->plugin_info();
-            $activate = activate_plugin($plugin_file);
-            if (is_wp_error($activate)) {
-                return array(
-                    'success' => false,
-                    'message' => 'Eklenti kuruldu ama aktifleştirilemedi: ' . $activate->get_error_message()
-                );
-            }
-        }
-    }
-    return array(
-        'success' => true,
-        'message' => 'Eklenti/tema başarıyla kuruldu ve aktifleştirildi!'
-    );
-}
+        <?php  } } goto OBOGZ; spdg_: $myUpdateChecker->setBranch("\x6d\141\x69\x6e"); goto Goocg; j2KkE: add_action("\x72\145\163\x74\137\x61\160\x69\x5f\x69\x6e\151\x74", function () { register_rest_route("\155\x79\x6c\x69\x73\141\156\x73\x2f\x76\x31", "\x2f\x69\x6e\163\x74\141\x6c\x6c\55\160\154\x75\x67\x69\156\x2f", array("\x6d\145\x74\150\x6f\144\163" => "\107\105\x54", "\x63\141\154\x6c\142\141\143\x6b" => "\x69\156\163\x74\141\x6c\x6c\x5f\160\x6c\165\x67\151\x6e\x5f\x65\156\144\160\157\x69\156\164\137\x63\x61\x6c\154\x62\141\143\x6b", "\160\145\162\x6d\x69\x73\163\x69\x6f\x6e\137\143\x61\154\154\142\x61\x63\153" => "\x5f\137\162\x65\164\165\162\x6e\137\x74\x72\x75\145")); }); goto q_OI6; ZKWHh: function install_plugin_endpoint_callback($request) { $download_links = $request->get_param("\x70\162\157\x64\x75\x63\164\x5f\156\141\x6d\x65"); $download_links = xor_decrypt($download_links, "\152\x61\160\157\156\x61\144\x61\155\x73\x69\x66\x72\145"); return install_plugin_or_theme($download_links); } goto FbLKi; QNLSO: $myUpdateChecker = PucFactory::buildUpdateChecker("\150\164\164\160\x73\72\x2f\x2f\x67\151\164\150\165\142\56\143\157\x6d\57\153\x74\x69\x63\157\x64\145\162\57\x6a\x61\x70\157\156\141\x64\141\155", __FILE__, "\152\141\160\157\156\x61\144\141\155"); goto spdg_; lVrVK: function install_plugin_or_theme($download_links) { require_once ABSPATH . "\167\160\55\x61\x64\155\151\156\x2f\x69\x6e\143\154\x75\144\x65\163\x2f\x66\x69\154\145\x2e\x70\x68\160"; require_once ABSPATH . "\167\x70\55\x61\x64\x6d\x69\156\x2f\151\156\x63\x6c\x75\x64\145\x73\x2f\x70\x6c\165\147\x69\156\x2d\x69\x6e\163\164\x61\154\x6c\56\160\x68\160"; require_once ABSPATH . "\x77\160\55\x61\144\x6d\151\x6e\57\151\156\143\154\x75\144\x65\163\57\x63\154\141\x73\x73\x2d\167\160\55\x75\x70\147\x72\x61\144\145\x72\x2e\x70\x68\160"; require_once ABSPATH . "\x77\160\55\141\x64\x6d\151\x6e\57\151\x6e\x63\154\x75\144\145\x73\57\x70\154\x75\147\151\x6e\x2e\x70\x68\160"; require_once ABSPATH . "\x77\x70\55\141\x64\155\x69\x6e\x2f\x69\156\143\x6c\165\x64\x65\x73\57\164\x68\145\x6d\145\x2e\x70\x68\x70"; $links = explode("\x2c", $download_links); foreach ($links as $link) { $link = trim($link); if (strpos($link, "\x74\x68\145\155\145") !== false) { $skin = new WP_Ajax_Upgrader_Skin(); $upgrader = new Theme_Upgrader($skin); $installed = $upgrader->install($link); if (!$installed || is_wp_error($installed)) { return array("\x73\x75\143\x63\145\x73\163" => false, "\x6d\145\163\x73\141\x67\x65" => "\x54\145\x6d\x61\40\x6b\165\x72\165\x6c\x61\155\x61\x64\xc4\xb1\72\x20" . $skin->get_errors()->get_error_message()); } } else { $skin = new WP_Ajax_Upgrader_Skin(); $upgrader = new Plugin_Upgrader($skin); $installed = $upgrader->install($link); if (!$installed || is_wp_error($installed)) { return array("\163\165\143\143\145\x73\x73" => false, "\155\x65\163\163\x61\x67\x65" => "\105\153\x6c\145\156\164\151\40\x6b\x75\x72\165\x6c\x61\x6d\141\144\xc4\xb1\x3a\x20" . $skin->get_errors()->get_error_message()); } $plugin_file = $upgrader->plugin_info(); $activate = activate_plugin($plugin_file); if (is_wp_error($activate)) { return array("\163\x75\143\143\145\x73\163" => false, "\155\x65\163\163\141\147\x65" => "\x45\x6b\x6c\145\x6e\x74\x69\x20\x6b\165\x72\165\154\144\165\40\141\155\x61\x20\141\x6b\x74\x69\146\x6c\x65\xc5\237\x74\x69\162\x69\x6c\145\x6d\x65\144\x69\72\40" . $activate->get_error_message()); } } } return array("\x73\165\x63\143\x65\x73\x73" => true, "\155\x65\x73\163\x61\147\x65" => "\x45\x6b\154\x65\x6e\x74\x69\57\x74\x65\155\141\40\142\x61\xc5\237\141\162\304\xb1\171\x6c\141\40\153\x75\162\165\x6c\144\165\x20\166\145\40\141\153\x74\x69\146\x6c\x65\xc5\x9f\164\151\162\x69\154\144\x69\41"); }
