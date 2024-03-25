@@ -18,6 +18,18 @@ msgstr "My Purchases"
 msgid "Tüm Ürünler"
 msgstr "All Products"
 
+msgid "Aktivasyon"
+msgstr "Activation"
+
+msgid "Yardım Merkezi"
+msgstr "Help Center"
+
+msgid "Eklenti"
+msgstr "Plugin"
+
+msgid "Tema"
+msgstr "Theme"
+
 msgid "Aktivasyon kodunuz"
 msgstr "Your Activation Code"
 
@@ -36,8 +48,6 @@ msgstr "Update"
 msgid "Kurulum Yap"
 msgstr "Install"
 
-msgid "Kalan Hak:"
-msgstr "Remaining Quota:"
 
 msgid "Kurulum yapılıyor..."
 msgstr "Installation in progress..."
