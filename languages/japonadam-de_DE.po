@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.4.2\n"
+
+msgid "Satın Aldıklarım"
+msgstr "Meine Einkäufe"
+
+msgid "Tüm Ürünler"
+msgstr "Alle Produkte"
+
+msgid "Aktivasyon kodunuz"
+msgstr "Ihr Aktivierungscode"
+
+msgid "Aktivasyonu Kaldır"
+msgstr "Aktivierung entfernen"
+
+msgid "Doğrula"
+msgstr "Überprüfen"
+
+msgid "Ürünleri görmek için sağ üst köşeden aktivasyon anahatarınızı giriniz."
+msgstr "Geben Sie Ihren Aktivierungsschlüssel oben rechts ein, um die Produkte zu sehen."
+
+msgid "Güncelle"
+msgstr "Aktualisieren"
+
+msgid "Kurulum Yap"
+msgstr "Installieren"
+
+msgid "Kalan Hak:"
+msgstr "Verbleibendes Kontingent:"
+
+msgid "Kurulum yapılıyor..."
+msgstr "Installation läuft..."
+
+msgid "Destek"
+msgstr "Unterstützung"
+
+msgid "Sitemizi Ziyaret Edin"
+msgstr "Besuchen Sie unsere Website"
+
+msgid "Bu ürünü henüz satın almadınız."
+msgstr "Sie haben dieses Produkt noch nicht gekauft."
+
+msgid "Ürününüz başarıyla kuruldu"
+msgstr "Ihr Produkt wurde erfolgreich installiert."
+
+msgid "Bu ürün sitenizde zaten kurulmuş."
+msgstr "Dieses Produkt ist bereits auf Ihrer Website installiert."
+
+msgid "Bu eklenti sitenizde zaten kurulu."
+msgstr "Dieses Plugin ist bereits auf Ihrer Website installiert."
+
+msgid "Bir hata oluştu. Lütfen daha sonra tekrar deneyiniz."
+msgstr "Ein Fehler ist aufgetreten. Bitte versuchen Sie es später noch einmal."
