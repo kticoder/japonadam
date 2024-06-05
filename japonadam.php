@@ -2,7 +2,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.28
+Version: 1.1.29
 Author: Melih Çat & Ktidev
 */
 
@@ -182,8 +182,15 @@ class JaponAdamAktivasyon {
         }
     }
     private function get_notifications() {
+        // Check if notifications were fetched in the last 10 minutes
+        $last_checked = get_transient('japonadam_last_notification_check');
+        if ($last_checked && (time() - $last_checked) < 3600) { // 600 seconds = 10 minutes
+            return get_transient('japonadam_notifications');
+        }
+
+        // Fetch new notifications from the API
         $response = wp_remote_get('https://japonadam.com/wp-json/bildirimler/v1/liste');
-        
+            
         if (is_wp_error($response)) {
             return [];
         }
@@ -197,6 +204,19 @@ class JaponAdamAktivasyon {
             $notifications = [];
         }
 
+        // Save notifications to the transient
+        set_transient('japonadam_notifications', $notifications, 3600); // 600 seconds = 10 minutes
+        set_transient('japonadam_last_notification_check', time(), 3600); // 600 seconds = 10 minutes
+
+        return $notifications;
+    }
+
+    // Method to get notifications from the transient
+    public function get_cached_notifications() {
+        $notifications = get_transient('japonadam_notifications');
+        if ($notifications === false) {
+            $notifications = $this->get_notifications();
+        }
         return $notifications;
     }
     // Özel stil ve scriptleri yalnızca "Japon Adam" sayfasında ykler.
@@ -466,13 +486,13 @@ class JaponAdamAktivasyon {
         $data = json_decode($body, true);
         return $data['success'];
     }
-    public function get_remaining_downloads($activation_key, $product_sku) {
+    public function get_remaining_downloads($activation_key, $product_skus) {
         $api_url = 'https://japonadam.com/wp-json/mylisans/v1/remaining-downloads';
         $response = wp_remote_get($api_url, array(
             'timeout' => 15,
             'body' => array(
                 'activation_key' => $activation_key,
-                'product_sku' => $product_sku
+                'product_skus' => $product_skus // Expecting an array of SKUs
             )
         ));
 
@@ -582,6 +602,8 @@ class JaponAdamAktivasyon {
         $tab = "purchased";
         // Satın alınan ürünlerin productid'lerini al
         $purchased_product_ids = $this->fetch_purchased_products();
+        // içindeki sadece ürün idlerini ver 
+        $sadece_urun_idleri = array_keys($purchased_product_ids);
 
         if (!is_array($purchased_product_ids)) {
             $purchased_product_ids = [];
@@ -611,6 +633,9 @@ class JaponAdamAktivasyon {
             $product['permalink'] = str_replace('https://japonadam.com', $satin_alinan_site, $product['permalink']);
             return $product;
         }, $products);
+        // sadece ilk 5 rn
+        // $products = array_slice($products, 0, 5);
+
         $warnings = [];
         $upload_limit = wp_max_upload_size() / (1024 * 1024); // Convert to MB
         if ($upload_limit < 100) {
@@ -622,6 +647,7 @@ class JaponAdamAktivasyon {
             $warnings[] = __('Kalıcı bağlantı ayarınız "Yazı Adı" değil. Lütfen ayarlarınızı güncelleyin.', 'japonadam');
         }
 
+        $remaining_downloads = $this->get_remaining_downloads($aktivasyon_kodu, $sadece_urun_idleri);
         ?>
 
         <!-- Ana konteyner -->
@@ -686,21 +712,16 @@ class JaponAdamAktivasyon {
                                     <p>#<?php echo esc_html(__($product['veri_tipi'], 'japonadam')); ?></p>
                                 </div>
                                 
-                                <!-- <div class="text-gray-400 text-md mb-4"><?php echo wp_kses_post($product['short_description']); ?></div> -->
                             </div>
                             <!-- Ürün işlem butonları -->
                             <div>
-                                <?php if ($this->check_activation_status(get_site_url(), $product['sku'], $aktivasyon_kodu) == 'true') { ?>
-                                    <button id="installplugin" class="bg-green-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['sku']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #008000;"><?php _e('Güncelle', 'japonadam'); ?></button>
-                                <?php } else if (in_array($product['sku'], array_keys($purchased_product_ids))) { ?>
-                                    <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['sku']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #1CBCFF;"><?php _e('Kurulum Yap', 'japonadam'); ?></button>
-                                <?php } ?>
+                                <button id="installplugin" class="bg-red-600 text-white border-0 rounded-lg py-2 text-md w-full" data-productid="<?php echo esc_attr($product['sku']); ?>" onclick="checkAndInstallPlugin(this,'<?php echo esc_attr($aktivasyon_kodu); ?>')" style="background-color: #1CBCFF;"><?php _e('Kurulum Yap', 'japonadam'); ?></button>
                             </div>
                             <div class="indirme-hakki mt-2 text-center">
                                 <?php
-                                // Örnek olarak her ürüne 5 indirme hakkı atadık, gerçek veriyi ürün bilgilerinizden çekmelisiniz.
-                                $remaining_downloads = $this->get_remaining_downloads($aktivasyon_kodu, $product['sku']);
-                                echo "<span class='text-white'>" .'Limit:' . " </span><span class='text-green-400'>" . esc_html($remaining_downloads) . "</span>";
+                                // Örnek olarak her rne 5 indirme hakkı atadık, gerçek veriyi rn bilgilerinizden çekmelisiniz.
+                                $limit_sayisi = $remaining_downloads[$product['sku']];
+                                echo "<span class='text-white'>" .'Limit:' . " </span><span class='text-green-400'>" . esc_html($limit_sayisi) . "</span>";
 
                                 ?>
                             </div>
