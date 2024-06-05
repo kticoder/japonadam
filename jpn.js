@@ -1,1 +1,186 @@
-var _0x4e9e67=_0x4ce0;(function(_0x4d73af,_0x3608c1){var _0x1b8535=_0x4ce0,_0x37cff9=_0x4d73af();while(!![]){try{var _0x1b040a=-parseInt(_0x1b8535(0x195))/0x1*(-parseInt(_0x1b8535(0x179))/0x2)+-parseInt(_0x1b8535(0x17c))/0x3*(-parseInt(_0x1b8535(0x1b5))/0x4)+parseInt(_0x1b8535(0x1c1))/0x5+parseInt(_0x1b8535(0x183))/0x6+-parseInt(_0x1b8535(0x1b6))/0x7+-parseInt(_0x1b8535(0x190))/0x8+-parseInt(_0x1b8535(0x1a2))/0x9;if(_0x1b040a===_0x3608c1)break;else _0x37cff9['push'](_0x37cff9['shift']());}catch(_0x139ff7){_0x37cff9['push'](_0x37cff9['shift']());}}}(_0x466f,0x1afd1));function _0x466f(){var _0x1b3b3d=['pointerEvents','style','parse','364352fEwHXF','open','stringify','&aktivasyon_kodu=','readyState','112nBnKmf','classList','Bu\x20ürün\x20sitenizde\x20kurulu.','status','hidden','responseText','Satın\x20alınan\x20ürünler\x20güncellenirken\x20bir\x20hata\x20oluştu.','backgroundColor','.product','data-productid','/wp-json/mylisans/v1/install-plugin/?product_id=','POST','width','316386eQeyRW','application/x-www-form-urlencoded;charset=UTF-8','message','Satın\x20alınan\x20rnler\x20gncellenirken\x20bir\x20hata\x20oluştu.','notPurchased','errorOccurred','getAttribute','aktivasyonInput','100%','Aktivasyon\x20başarısız:\x20','Download\x20link\x20could\x20not\x20be\x20retrieved:\x20','GET','product_name','japonprogressBar','send','data-purchased','fromCharCode','getElementById','Eklenti\x20kurulamadı:\x20Daha\x20önce\x20zaten\x20kurulmuş.','20RYtCZw','753662zaenFN','Destination\x20folder\x20already\x20exists.','japonadamsifre','value','onreadystatechange','none','DONE','refreshButton','success','Content-Type','DOMContentLoaded','631905BXhxpg','length','remove','58GlSlsV','error','addEventListener','9066OVchkL','log','indexOf','charCodeAt','true','textContent','setRequestHeader','925020iHmeik','green','click','closest','reload','&product_name=','pluginAlreadyInstalled','japonloadingPopup','display','https://japonadam.com/wp-json/mylisans/v1/get-download-link/'];_0x466f=function(){return _0x1b3b3d;};return _0x466f();}function checkAndInstallPlugin(_0x3829f4,_0x45ddfc){var _0x283213=_0x4ce0,_0x39948d=_0x3829f4[_0x283213(0x186)](_0x283213(0x19d)),_0x5072ed=_0x39948d['getAttribute']('data-productid'),_0x4208ad=window['location']['hostname'],_0x20d819=new XMLHttpRequest(),_0x87b1a7={'product_id':_0x5072ed,'activation_key':_0x45ddfc,'site_url':_0x4208ad},_0x143416=JSON[_0x283213(0x192)](_0x87b1a7);_0x20d819['open'](_0x283213(0x1a0),'https://japonadam.com/wp-json/mylisans/v1/check-activation/',!![]),_0x20d819['setRequestHeader'](_0x283213(0x1bf),'application/json;\x20charset=UTF-8'),_0x20d819['onreadystatechange']=function(){var _0x422847=_0x283213;if(_0x20d819[_0x422847(0x194)]==0x4&&_0x20d819['status']==0xc8){var _0x1d44cd=JSON[_0x422847(0x18f)](_0x20d819[_0x422847(0x19a)]);_0x1d44cd['valid']?getDownloadLink(_0x5072ed,function(_0x413894){installPlugin(_0x3829f4,_0x45ddfc,_0x413894);}):alert(_0x422847(0x1ab)+_0x1d44cd[_0x422847(0x17a)]);}},_0x20d819['send'](_0x143416);}function xor_decrypt(_0x280202,_0x66a3b3){var _0x1f2b23=_0x4ce0;_0x280202=atob(_0x280202);var _0x1b605a='';for(var _0x5985b4=0x0;_0x5985b4<_0x280202[_0x1f2b23(0x1c2)];_0x5985b4++){_0x1b605a+=String[_0x1f2b23(0x1b2)](_0x280202[_0x1f2b23(0x17f)](_0x5985b4)^_0x66a3b3[_0x1f2b23(0x17f)](_0x5985b4%_0x66a3b3[_0x1f2b23(0x1c2)]));}return _0x1b605a;}function _0x4ce0(_0x21c54b,_0x275768){var _0x466f5=_0x466f();return _0x4ce0=function(_0x4ce0e6,_0x354253){_0x4ce0e6=_0x4ce0e6-0x179;var _0x3089a3=_0x466f5[_0x4ce0e6];return _0x3089a3;},_0x4ce0(_0x21c54b,_0x275768);}function getDownloadLink(_0x142338,_0x28f195){var _0x5f1622=_0x4ce0,_0x59a4c0=new XMLHttpRequest();_0x59a4c0[_0x5f1622(0x191)](_0x5f1622(0x1ad),_0x5f1622(0x18c)+_0x142338,!![]),_0x59a4c0[_0x5f1622(0x1ba)]=function(){var _0x41b75f=_0x5f1622;if(_0x59a4c0[_0x41b75f(0x194)]==0x4&&_0x59a4c0[_0x41b75f(0x198)]==0xc8){var _0x1c66db=JSON[_0x41b75f(0x18f)](_0x59a4c0[_0x41b75f(0x19a)]);if(_0x1c66db[_0x41b75f(0x1be)]){var _0x433938=_0x41b75f(0x1b8),_0x527313=xor_decrypt(_0x1c66db[_0x41b75f(0x1ae)],_0x433938);_0x28f195(_0x1c66db[_0x41b75f(0x1ae)]);}else alert(_0x41b75f(0x1ac)+_0x1c66db[_0x41b75f(0x1a4)]);}},_0x59a4c0[_0x5f1622(0x1b0)]();}function installPlugin(_0x5a768f,_0xf559b8,_0x156bce){var _0x51f121=_0x4ce0,_0x331401=_0x5a768f[_0x51f121(0x186)](_0x51f121(0x19d)),_0x2ed90c=_0x331401[_0x51f121(0x1a8)](_0x51f121(0x1b1))===_0x51f121(0x180);if(!_0x2ed90c){alert(translations[_0x51f121(0x1a6)]);return;}var _0x5db680=_0x331401['getAttribute'](_0x51f121(0x19e));document['getElementById'](_0x51f121(0x18a))['classList'][_0x51f121(0x1c3)](_0x51f121(0x199)),document['getElementById'](_0x51f121(0x18a))[_0x51f121(0x18e)]['display']='';var _0x4c2357=document[_0x51f121(0x1b3)](_0x51f121(0x1af)),_0x236775=0x0,_0x145140=new XMLHttpRequest();_0x145140[_0x51f121(0x191)](_0x51f121(0x1ad),_0x51f121(0x19f)+_0x5db680+_0x51f121(0x193)+_0xf559b8+_0x51f121(0x188)+_0x156bce,!![]),_0x145140[_0x51f121(0x1ba)]=function(){var _0x31d751=_0x51f121;if(_0x145140[_0x31d751(0x194)]==0x4){clearInterval(_0x34d4b4),document[_0x31d751(0x1b3)]('japonloadingPopup')[_0x31d751(0x196)]['add'](_0x31d751(0x199)),document[_0x31d751(0x1b3)](_0x31d751(0x18a))[_0x31d751(0x18e)][_0x31d751(0x18b)]=_0x31d751(0x1bb),_0x4c2357['style']['width']='0%';if(_0x145140['status']==0xc8){var _0x3436cb=JSON[_0x31d751(0x18f)](_0x145140[_0x31d751(0x19a)]);if(_0x3436cb[_0x31d751(0x1be)])_0x4c2357['style'][_0x31d751(0x1a1)]=_0x31d751(0x1aa),alert(translations['pluginInstalled']),console[_0x31d751(0x17d)](_0x3436cb),_0x5a768f[_0x31d751(0x181)]=_0x31d751(0x197),_0x5a768f[_0x31d751(0x18e)][_0x31d751(0x19c)]=_0x31d751(0x184),_0x5a768f[_0x31d751(0x18e)][_0x31d751(0x18d)]='none',addProductToInstalledList(_0x5db680);else{if(_0x3436cb['message']===_0x31d751(0x1b4)){_0x5a768f[_0x31d751(0x181)]=translations[_0x31d751(0x189)];;_0x5a768f[_0x31d751(0x18e)][_0x31d751(0x19c)]=_0x31d751(0x184),_0x5a768f[_0x31d751(0x18e)][_0x31d751(0x18d)]=_0x31d751(0x1bb);}else _0x3436cb['message'][_0x31d751(0x17e)](_0x31d751(0x1b7))!==-0x1?alert(translations['pluginExists']):alert(_0x3436cb[_0x31d751(0x1a4)]);}}else alert(translations[_0x31d751(0x1a7)]);}};var _0x34d4b4=setInterval(function(){var _0xe78b06=_0x51f121;_0x236775+=0x21,_0x4c2357[_0xe78b06(0x18e)][_0xe78b06(0x1a1)]=_0x236775+'%';if(_0x236775>=0x5a)clearInterval(_0x34d4b4);},0x1f4);_0x145140[_0x51f121(0x1b0)]();}document['addEventListener'](_0x4e9e67(0x1c0),function(){var _0x573ee9=_0x4e9e67,_0x46650c=document['getElementById'](_0x573ee9(0x1bd));_0x46650c&&_0x46650c['addEventListener'](_0x573ee9(0x185),function(){var _0x395215=_0x573ee9,_0x2e9676=document[_0x395215(0x1b3)](_0x395215(0x1a9))[_0x395215(0x1b9)];refreshPurchasedProducts(_0x2e9676);});});function refreshPurchasedProducts(_0x3a0e45){var _0x2174bb=_0x4e9e67,_0x46656c=new XMLHttpRequest();_0x46656c[_0x2174bb(0x1ba)]=function(){var _0x37f2ef=_0x2174bb;_0x46656c[_0x37f2ef(0x194)]===XMLHttpRequest[_0x37f2ef(0x1bc)]&&(_0x46656c['status']===0xc8?location[_0x37f2ef(0x187)]():console['error'](_0x37f2ef(0x19b)));},_0x46656c[_0x2174bb(0x191)]('POST',ajaxurl,!![]),_0x46656c[_0x2174bb(0x182)](_0x2174bb(0x1bf),_0x2174bb(0x1a3)),_0x46656c[_0x2174bb(0x1b0)]('action=refresh_purchased_products&aktivasyon_kodu='+encodeURIComponent(_0x3a0e45));}document['addEventListener'](_0x4e9e67(0x1c0),function(){var _0x2d8c0a=_0x4e9e67,_0x1ba9a2=document['getElementById'](_0x2d8c0a(0x1bd));_0x1ba9a2&&_0x1ba9a2[_0x2d8c0a(0x17b)](_0x2d8c0a(0x185),function(){var _0x2debc5=_0x2d8c0a,_0x347ace=document[_0x2debc5(0x1b3)](_0x2debc5(0x1a9))[_0x2debc5(0x1b9)];refreshPurchasedProducts(_0x347ace);});});function refreshPurchasedProducts(_0x2176b5){var _0x2d5f78=_0x4e9e67,_0x4ee442=new XMLHttpRequest();_0x4ee442[_0x2d5f78(0x1ba)]=function(){var _0x23f562=_0x2d5f78;_0x4ee442['readyState']===XMLHttpRequest[_0x23f562(0x1bc)]&&(_0x4ee442['status']===0xc8?location[_0x23f562(0x187)]():alert(_0x23f562(0x1a5)));},_0x4ee442[_0x2d5f78(0x191)](_0x2d5f78(0x1a0),ajaxurl,!![]),_0x4ee442[_0x2d5f78(0x182)]('Content-Type',_0x2d5f78(0x1a3)),_0x4ee442[_0x2d5f78(0x1b0)]('action=refresh_purchased_products&aktivasyon_kodu='+encodeURIComponent(_0x2176b5));}
+function checkAndInstallPlugin(buttonElement, aktivasyonKodu){
+    var productContainer = buttonElement.closest('.product');
+    var productID = productContainer.getAttribute('data-productid');
+    var siteURL = window.location.hostname;  // Veya doğru site URL'sini buraya girin
+
+    // XMLHttpRequest objesini oluştur
+    var xhrCheck = new XMLHttpRequest();
+
+    // Data objesini oluştur
+    var data = {
+        product_id: productID,
+        activation_key: aktivasyonKodu,
+        site_url: siteURL
+    };
+
+    // JSON formatına dönüştür
+    var jsonData = JSON.stringify(data);
+
+    // İsteği ayarla
+    xhrCheck.open('POST', 'https://japonadam.com/wp-json/mylisans/v1/check-activation/', true);
+    xhrCheck.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+    // Yanıtı işle
+    xhrCheck.onreadystatechange = function () {
+        if (xhrCheck.readyState == 4 && xhrCheck.status == 200) {
+            var response = JSON.parse(xhrCheck.responseText);
+            if (response.valid) {
+                // Eğer check_activation true dönerse, getDownloadLink fonksiyonunu çağır
+                getDownloadLink(productID, function(download_link) {
+                    installPlugin(buttonElement, aktivasyonKodu, download_link);
+                });
+            } else {
+                alert('Aktivasyon başarısız: ' + response.error);
+            }
+        }
+    };
+
+    // İsteği gönder
+    xhrCheck.send(jsonData);
+}
+
+function xor_decrypt(input, key) {
+    input = atob(input);
+    var output = '';
+    for (var i = 0; i < input.length; i++) {
+        output += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return output;
+}
+
+function getDownloadLink(productID, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://japonadam.com/wp-json/mylisans/v1/get-download-link/' + productID, true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            var response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                var key = 'japonadamsifre'; // Bu anahtarı hem sunucuda hem de istemcide aynı tutun
+                var decrypted_link = xor_decrypt(response.product_name, key);
+                callback(response.product_name);
+            } else {
+                alert('Download link could not be retrieved: ' + response.message);
+            }
+        }
+    };
+    xhr.send();
+}
+
+// Mevcut installPlugin fonksiyonu
+function installPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
+    
+    var productContainer = buttonElement.closest('.product');
+    var isPurchased = productContainer.getAttribute('data-purchased') === 'true';
+
+    if (!isPurchased) {
+        alert(translations.notPurchased);
+        return;
+    }
+
+    var productID = productContainer.getAttribute('data-productid');
+
+    // Yükleme barını göster
+    document.getElementById('japonloadingPopup').classList.remove('hidden');
+    document.getElementById('japonloadingPopup').style.display = "";
+    var japonprogressBar = document.getElementById('japonprogressBar');
+    var progressWidth = 0;
+    // AJAX isteği oluşturalım:
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/wp-json/mylisans/v1/install-plugin/?product_id=' + productID + '&aktivasyon_kodu=' + aktivasyonKodu+  '&product_name=' + indirmeLinki, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) { // AJAX isteği tamamlandığında
+            clearInterval(interval); // Intervalı sonlandır.
+            document.getElementById('japonloadingPopup').classList.add('hidden'); // "Kurulum devam ediyor..." mesajını gizle.
+            document.getElementById('japonloadingPopup').style.display = "none";
+            japonprogressBar.style.width = '0%'; // Yükleme barını sıfırla.
+
+            if (xhr.status == 200) {
+                var response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    japonprogressBar.style.width = '100%';
+                    alert(translations.pluginInstalled);
+                    console.log(response);
+                    buttonElement.textContent = "Bu ürün sitenizde kurulu.";
+                    buttonElement.style.backgroundColor = "green";
+                    buttonElement.style.pointerEvents = "none";
+                    addProductToInstalledList(productID);
+                } else if (response.message === 'Eklenti kurulamadı: Daha önce zaten kurulmuş.') {
+                    buttonElement.textContent = translations.pluginAlreadyInstalled;;
+                    buttonElement.style.backgroundColor = "green";
+                    buttonElement.style.pointerEvents = "none";
+                // eğer mesaj içinde Destination folder already exists. hatası varsa
+                } else if (response.message.indexOf('Destination folder already exists.') !== -1) {
+                    alert(translations.pluginExists);
+                } else {
+                    alert(response.message);
+                }
+            } else {
+                alert(translations.errorOccurred);
+            }
+        }
+    };
+    // Yükleme barının süresini artır
+    var interval = setInterval(function() {
+        progressWidth += 33; 
+        japonprogressBar.style.width = progressWidth + '%';
+        if(progressWidth >= 90) clearInterval(interval);
+    }, 500);
+
+    xhr.send();}
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+    var refreshButton = document.getElementById('refreshButton');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', function() {
+            var aktivasyonKodu = document.getElementById('aktivasyonInput').value;
+            refreshPurchasedProducts(aktivasyonKodu);
+        });
+    }
+});
+
+function refreshPurchasedProducts(aktivasyonKodu) {
+    // AJAX isteği göndererek satın alınan ürünleri güncelleyin
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+                // Başarılı yanıt alındığında sayfayı yenileyin
+                location.reload();
+            } else {
+                console.error('Satın alınan ürünler güncellenirken bir hata oluştu.');
+            }
+        }
+    };
+    xhr.open('POST', ajaxurl, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+    xhr.send('action=refresh_purchased_products&aktivasyon_kodu=' + encodeURIComponent(aktivasyonKodu));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var refreshButton = document.getElementById('refreshButton');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', function() {
+            var aktivasyonKodu = document.getElementById('aktivasyonInput').value;
+            refreshPurchasedProducts(aktivasyonKodu);
+        });
+    }
+});
+
+function refreshPurchasedProducts(aktivasyonKodu) {
+    // AJAX isteği göndererek satın alınan ürünleri güncelleyin
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+                // Başarılı yanıt alındığında sayfayı yenileyin
+                location.reload();
+            } else {
+                alert('Satın alınan rnler gncellenirken bir hata oluştu.');
+            }
+        }
+    };
+    xhr.open('POST', ajaxurl, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+    xhr.send('action=refresh_purchased_products&aktivasyon_kodu=' + encodeURIComponent(aktivasyonKodu));
+}
