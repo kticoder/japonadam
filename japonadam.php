@@ -2,7 +2,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.29
+Version: 1.1.30
 Author: Melih Çat & Ktidev
 */
 
@@ -599,7 +599,7 @@ class JaponAdamAktivasyon {
         $inputValue = $isActivated ? '•••••••••••••••••' : '';
         $buttonValue = $isActivated ? __('Aktivasyonu Kaldır', 'japonadam') : __('Doğrula', 'japonadam');
         $buttonColor = $isActivated ? '#bc2626' : '#1cbcff';
-        $tab = "purchased";
+        $tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'purchased';
         // Satın alınan ürünlerin productid'lerini al
         $purchased_product_ids = $this->fetch_purchased_products();
         // içindeki sadece ürün idlerini ver 
@@ -644,7 +644,7 @@ class JaponAdamAktivasyon {
 
         // Check if permalink structure is not "Post Name"
         if (get_option('permalink_structure') !== '/%postname%/') {
-            $warnings[] = __('Kalıcı bağlantı ayarınız "Yazı Adı" değil. Lütfen ayarlarınızı güncelleyin.', 'japonadam');
+            $warnings[] = __('Yanlış yapılandırma! Ayarlar > Kalıcı Bağlantılar > Yazı Adı olarak değiştiriniz.', 'japonadam');
         }
 
         $remaining_downloads = $this->get_remaining_downloads($aktivasyon_kodu, $sadece_urun_idleri);
@@ -667,10 +667,17 @@ class JaponAdamAktivasyon {
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
                             <a href="?page=japon-adam&tab=purchased" class="hover:text-blue-100"><?php _e('Satın Aldıklarım', 'japonadam'); ?></a>
                         </li>
+
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
-                            <a  class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza/'); ?>', '_blank')"><?php _e('Tüm Ürünler', 'japonadam'); ?></a>
+                            <a class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza/'); ?>', '_blank')"><?php _e('Tüm Ürünler', 'japonadam'); ?></a>
                         </li>
+                        <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
+                        <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
+                            <a href="?page=japon-adam&tab=help-center" class="hover:text-blue-100"><?php _e('Yardım Merkezi', 'japonadam'); ?></a>
+                            s
+                        </li>
+                        
                     </ul>
                 </div>
 
@@ -685,12 +692,109 @@ class JaponAdamAktivasyon {
                         <input type="submit" id="aktivasyonButton" value="<?php echo esc_attr($buttonValue); ?>" style="background-color: <?php echo esc_attr($buttonColor); ?>;" class="py-2 px-4 border-0 text-sm text-white cursor-pointer rounded">
                     </form>
                     <?php if ($warnings): ?>
-                        <button id="importantNoticesButton" class="bg-orange-600 p-4 rounded-full">
+                        <button id="importantNoticesButton" class="bg-orange-600 p-4 rounded-full blink">
                             <span class="dashicons dashicons-warning" style="color: #FFA500;"></span>
                         </button>
                     <?php endif; ?>
+
+                    <style>
+                        @keyframes blink {
+                            0% { opacity: 1; }
+                            50% { opacity: 0.5; }
+                            100% { opacity: 1; }
+                        }
+                        .blink {
+                            animation: blink 1s linear infinite;
+                        }
+                    </style>
                 </div>
             </div>
+<?php if ($tab === 'help-center'): ?>
+    <div class="help-center flex">
+        <div class="categories w-1/4 p-4 bg-gray-800 text-white">
+            <ul>
+                <?php
+                $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu);
+                $api_url = $satin_alinan_site . '/wp-json/sitekisitlama/v1/issues';
+                $response = wp_remote_get($api_url);
+                if (is_wp_error($response)) {
+                    $response = wp_remote_get('https://japonadam.com/wp-json/sitekisitlama/v1/issues');
+                }
+                if (!is_wp_error($response)) {
+                    $body = wp_remote_retrieve_body($response);
+                    $issues = json_decode($body, true);
+                    if (is_array($issues)) {
+                        $categories = [];
+                        foreach ($issues as $issue) {
+                            $categories[$issue['category_name']][] = $issue;
+                        }
+                        foreach ($categories as $category_name => $category_issues): ?>
+                            <li class="py-2 px-4 cursor-pointer" data-category="<?php echo esc_attr($category_name); ?>">
+                                <?php echo esc_html($category_name); ?>
+                            </li>
+                        <?php endforeach;
+                    }
+                }
+                ?>
+            </ul>
+        </div>
+        <div class="issues w-3/4 p-4">
+            <?php foreach ($categories as $category_name => $category_issues): ?>
+                <div class="category-content hidden" data-category="<?php echo esc_attr($category_name); ?>">
+                    <?php foreach ($category_issues as $issue): ?>
+                        <div class="issue bg-white p-4 rounded shadow mb-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xl font-bold"><?php echo esc_html($issue['issue_title']); ?></h3>
+                                <button class="toggle-solution bg-blue-500 text-white px-2 py-1 rounded">+</button>
+                            </div>
+                            <div class="solution bg-gray-100 p-2 mt-2 rounded hidden">
+                                <?php echo $issue['solution']; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const categoryItems = document.querySelectorAll(".categories li");
+            const contents = document.querySelectorAll(".category-content");
+            const toggleButtons = document.querySelectorAll(".toggle-solution");
+
+            categoryItems.forEach(item => {
+                item.addEventListener("click", function() {
+                    const category = this.getAttribute("data-category");
+
+                    categoryItems.forEach(i => i.classList.remove("bg-gray-700"));
+                    this.classList.add("bg-gray-700");
+
+                    contents.forEach(content => {
+                        if (content.getAttribute("data-category") === category) {
+                            content.classList.remove("hidden");
+                        } else {
+                            content.classList.add("hidden");
+                        }
+                    });
+                });
+            });
+
+            toggleButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    const solution = this.parentElement.nextElementSibling;
+                    solution.classList.toggle("hidden");
+                    this.textContent = solution.classList.contains("hidden") ? "+" : "-";
+                });
+            });
+
+            // İlk kategoriyi ve içeriği varsayılan olarak göster
+            if (categoryItems.length > 0) {
+                categoryItems[0].click();
+            }
+        });
+    </script>
+<?php endif; ?>
+<?php if ($tab === 'purchased'): ?>
 
             <!-- Ürün listesi bölümü -->
             <div class="jp-content p-12">
@@ -771,6 +875,16 @@ class JaponAdamAktivasyon {
                 </div>
             </div>
             <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var button = document.getElementById('importantNoticesButton');
+                    if (button) {
+                        button.addEventListener('click', function() {
+                            this.classList.remove('blink');
+                        });
+                    }
+                });
+            </script>
+            <script>
                 document.getElementById('importantNoticesButton').addEventListener('click', function() {
                     document.getElementById('importantNoticesModal').classList.remove('hidden');
                 });
@@ -781,6 +895,7 @@ class JaponAdamAktivasyon {
             </script>
         </div>
         </div>
+    <?php endif; ?>
 
         <?php
     }
@@ -826,18 +941,43 @@ function install_plugin_endpoint_callback($request) {
     return install_plugin_or_theme($download_links_with_params);
 }
 
+function log_kaydet($message) {
+    $log_file = plugin_dir_path(__FILE__) . 'log.txt';
+    $timestamp = date('[Y-m-d H:i:s] ');
+    $log_message = $timestamp . $message . PHP_EOL;
+    file_put_contents($log_file, $log_message, FILE_APPEND);
+}
+
 function install_plugin_or_theme($download_links) {
     require_once(ABSPATH . 'wp-admin/includes/file.php');
     require_once(ABSPATH . 'wp-admin/includes/plugin-install.php');
     require_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
     require_once(ABSPATH . 'wp-admin/includes/plugin.php');
     require_once(ABSPATH . 'wp-admin/includes/theme.php');
-    // linkte https yoksa 
 
     $links = explode(',', $download_links);
     foreach ($links as $link) {
         $link = trim($link);
-        if (strpos($link, 'theme') !== false) {  // Tema linklerinde 'theme' kelimesini kontrol ediyoruz
+        $item_slug = basename($link, '.zip');
+        $item_slug = explode('.zip', $item_slug)[0];
+
+        if (strpos($link, 'theme') !== false) {
+            // Tema için eski versiyonu silme
+            $all_themes = wp_get_themes();
+            foreach ($all_themes as $theme_slug => $theme) {
+                if (strpos($theme_slug, $item_slug) === 0) {
+                log_kaydet($theme_slug);
+                log_kaydet($item_slug);
+                    $active_theme = wp_get_theme();
+                    if ($active_theme->get_stylesheet() == $theme_slug) {
+                        switch_theme(WP_DEFAULT_THEME);
+                    }
+                    delete_theme($theme_slug);
+                    break;
+                }
+            }
+
+            // Yeni temayı kurma
             $skin = new WP_Ajax_Upgrader_Skin();
             $upgrader = new Theme_Upgrader($skin);
             $installed = $upgrader->install($link);
@@ -847,7 +987,20 @@ function install_plugin_or_theme($download_links) {
                     'message' => 'Tema kurulamadı: ' . $skin->get_errors()->get_error_message()
                 );
             }
-        } else {  // Eğer 'theme' kelimesi yoksa, eklenti olarak kabul ediyoruz
+        } else {
+            // Eklenti için eski versiyonu silme
+            $all_plugins = get_plugins();
+            foreach ($all_plugins as $plugin_path => $plugin_data) {
+                log_kaydet($plugin_path);
+                log_kaydet($item_slug);
+                if (strpos($plugin_path, $item_slug) === 0) {
+                    deactivate_plugins($plugin_path);
+                    delete_plugins(array($plugin_path));
+                    break;
+                }
+            }
+
+            // Yeni eklentiyi kurma ve aktifleştirme
             $skin = new WP_Ajax_Upgrader_Skin();
             $upgrader = new Plugin_Upgrader($skin);
             $installed = $upgrader->install($link);
@@ -873,6 +1026,7 @@ function install_plugin_or_theme($download_links) {
         'message' => 'Eklenti/tema başarıyla kuruldu ve aktifleştirildi!'
     );
 }
+
 
 function japonadam_plugin_action_links($links) {
     $settings_link = '<a href="' . admin_url('admin.php?page=japon-adam') . '">Ayarlar</a>';
