@@ -2,7 +2,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.30
+Version: 1.1.31
 Author: Melih Çat & Ktidev
 */
 
@@ -33,7 +33,7 @@ function japonadam_add_help_center_submenu() {
         return;
     }
     // add_submenu_page('japon-adam', 'Yardım Merkezi', 'Yardım Merkezi', 'manage_options', 'japonadam-help-center', 'japonadam_help_center_redirect');
-    add_submenu_page('japon-adam', __('Yardım Merkezi', 'japonadam'), __('Yardım Merkezi', 'japonadam'), 'manage_options', 'japonadam-help-center', 'japonadam_help_center_redirect');
+    // add_submenu_page('japon-adam', __('Yardım Merkezi', 'japonadam'), __('Yardım Merkezi', 'japonadam'), 'manage_options', 'japonadam-help-center', 'japonadam_help_center_redirect');
 }
 
 function japonadam_help_center_redirect() {
@@ -675,7 +675,6 @@ class JaponAdamAktivasyon {
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
                             <a href="?page=japon-adam&tab=help-center" class="hover:text-blue-100"><?php _e('Yardım Merkezi', 'japonadam'); ?></a>
-                            s
                         </li>
                         
                     </ul>
