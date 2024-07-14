@@ -7,6 +7,7 @@ Author: Melih Çat & Ktidev
 */
 
 require 'plugin-update-checker/plugin-update-checker.php'; 
+require 'envato.php'; 
 
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
@@ -517,6 +518,7 @@ class JaponAdamAktivasyon {
 
         if ($aktivasyon_kodu) {
             $response = wp_remote_get("https://japonadam.com/wp-json/mylisans/v1/api/?activation_key={$aktivasyon_kodu}");
+            abonelik_kontrol($aktivasyon_kodu,true);
 
             if (is_wp_error($response)) {
                 wp_send_json_error('API isteği başarısız oldu.');
@@ -558,6 +560,7 @@ class JaponAdamAktivasyon {
 
         // Check if the activation code exists in the database
         $purchase_site = $wpdb->get_var($wpdb->prepare("SELECT purchase_site FROM $table_name WHERE activation_code = %s", $activation_code));
+        update_option('purchased_site', $purchase_site); 
 
         if ($purchase_site) {
             return $purchase_site;
@@ -582,6 +585,7 @@ class JaponAdamAktivasyon {
                     'activation_code' => $activation_code,
                     'purchase_site' => $purchase_site
                 ]);
+                update_option('purchased_site', $purchase_site); // Store the purchased site information
 
                 return $purchase_site;
             } else {
@@ -614,19 +618,9 @@ class JaponAdamAktivasyon {
         });
 
         $products = $filtered_products;
-
-        // if ($tab === 'purchased') {
-        //     $products = $filtered_products;
-        // } else {
-        //     $products = $all_products;
-        // }
         $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu);
-        $satin_alinan_site_destek = $satin_alinan_site . '/destek/';
+        $satin_alinan_site_destek = "https://japonadam.com/destek/";
 
-        if ($isActivated) {
-            $satin_alinan_site = $this->get_purchase_site($aktivasyon_kodu);
-            $satin_alinan_site_destek = $satin_alinan_site . '/destek/';
-        }
 
         #products içindeki permalinklerdeki domaini satın alınan site ile değiştir
         $products = array_map(function($product) use ($satin_alinan_site) {
@@ -670,7 +664,7 @@ class JaponAdamAktivasyon {
 
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
-                            <a class="hover:text-blue-100" onclick="window.open('<?php echo esc_url($satin_alinan_site . '/magaza/'); ?>', '_blank')"><?php _e('Tüm Ürünler', 'japonadam'); ?></a>
+                            <a class="hover:text-blue-100" href="https://japonadam.com/magaza/" target="_blank"><?php _e('Tüm Ürünler', 'japonadam'); ?></a>
                         </li>
                         <div class="h-5 border-r-2 border-gray-600 mx-2"></div>
                         <li class="py-2 px-4 rounded cursor-pointer transition-colors duration-300">
@@ -937,22 +931,67 @@ function install_plugin_endpoint_callback($request) {
     // Parametre eklenmiş linkleri virgülle birleştir
     $download_links_with_params = implode(',', $links_with_params);
 
-    return install_plugin_or_theme($download_links_with_params);
+    return install_plugin_or_theme($download_links_with_params, $aktivasyon_kodu);
 }
 
-function log_kaydet($message) {
-    $log_file = plugin_dir_path(__FILE__) . 'log.txt';
-    $timestamp = date('[Y-m-d H:i:s] ');
-    $log_message = $timestamp . $message . PHP_EOL;
-    file_put_contents($log_file, $log_message, FILE_APPEND);
+// function log_kaydet($message) {
+//     $log_file = plugin_dir_path(__FILE__) . 'log.txt';
+//     $timestamp = date('[Y-m-d H:i:s] ');
+//     $log_message = $timestamp . $message . PHP_EOL;
+//     file_put_contents($log_file, $log_message, FILE_APPEND);
+// }
+
+function abonelik_kontrol($activation_code,$zaman_deaktif = false) {
+    $last_check_time = get_option('last_membership_check_time');
+    $current_time = time();
+
+    if (!$zaman_deaktif) {
+        if ($last_check_time && ($current_time - $last_check_time) < 3600) {
+            return get_option('membership_status');
+        }
+    }
+
+    $response = wp_remote_get("https://wptokyo.com/wp-json/membership/v1/check-membership?activation_code={$activation_code}");
+
+    if (is_wp_error($response)) {
+        return ['exists' => false, 'has_active_membership' => false, 'message' => 'API request failed.'];
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    // Store the membership status and the current time in the options table
+    update_option('membership_status', $data);
+    update_option('last_membership_check_time', $current_time);
+
+    return $data;
 }
 
-function install_plugin_or_theme($download_links) {
+function install_plugin_or_theme($download_links, $aktivasyon_kodu) {
     require_once(ABSPATH . 'wp-admin/includes/file.php');
     require_once(ABSPATH . 'wp-admin/includes/plugin-install.php');
     require_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
     require_once(ABSPATH . 'wp-admin/includes/plugin.php');
     require_once(ABSPATH . 'wp-admin/includes/theme.php');
+
+    $purchased_site = get_option('purchased_site');
+
+    // SKU kontrolü ve abonelik kontrolü
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'jpn_products';
+    $subscription_skus = ['999', '998', '997'];
+    $product_skus = $wpdb->get_col("SELECT sku FROM $table_name");
+
+    if ($purchased_site === 'https://wptokyo.com' || array_intersect($subscription_skus, $product_skus)) {
+        $membership_status = abonelik_kontrol($aktivasyon_kodu);
+        if (!$membership_status['has_active_membership']) {
+            return [
+                'success' => false,
+                'message' => 'You do not have an active membership.'
+            ];
+        }
+    }
+    
 
     $links = explode(',', $download_links);
     foreach ($links as $link) {
@@ -965,8 +1004,6 @@ function install_plugin_or_theme($download_links) {
             $all_themes = wp_get_themes();
             foreach ($all_themes as $theme_slug => $theme) {
                 if (strpos($theme_slug, $item_slug) === 0) {
-                log_kaydet($theme_slug);
-                log_kaydet($item_slug);
                     $active_theme = wp_get_theme();
                     if ($active_theme->get_stylesheet() == $theme_slug) {
                         switch_theme(WP_DEFAULT_THEME);
@@ -990,8 +1027,6 @@ function install_plugin_or_theme($download_links) {
             // Eklenti için eski versiyonu silme
             $all_plugins = get_plugins();
             foreach ($all_plugins as $plugin_path => $plugin_data) {
-                log_kaydet($plugin_path);
-                log_kaydet($item_slug);
                 if (strpos($plugin_path, $item_slug) === 0) {
                     deactivate_plugins($plugin_path);
                     delete_plugins(array($plugin_path));
