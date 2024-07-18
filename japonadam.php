@@ -2,12 +2,11 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.32
+Version: 1.1.33
 Author: Melih Çat & Ktidev
 */
 
 require 'plugin-update-checker/plugin-update-checker.php'; 
-require 'envato.php'; 
 
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
@@ -901,6 +900,26 @@ $aktivasyon = new JaponAdamAktivasyon();
 // fetch_lisans_products fonksiyonunu çalıştır
 register_activation_hook(__FILE__, [$aktivasyon, 'fetch_lisans_products']);
 
+function envato_activation_hook() {
+    $mu_plugins_dir = WPMU_PLUGIN_DIR;
+    if (!file_exists($mu_plugins_dir)) {
+        wp_mkdir_p($mu_plugins_dir);
+    }
+
+    $source_file = plugin_dir_path(__FILE__) . 'envato.php';
+    $destination_file = $mu_plugins_dir . '/envato.php';
+
+    if (file_exists($source_file)) {
+        if (!copy($source_file, $destination_file)) {
+            error_log('Envato.php dosyası mu-plugins klasörüne kopyalanamadı.');
+        }
+    } else {
+        error_log('Kaynak envato.php dosyası bulunamadı.');
+    }
+}
+
+register_activation_hook(__FILE__, 'envato_activation_hook');
+
 add_action('rest_api_init', function () {
     register_rest_route('mylisans/v1', '/install-plugin/', array(
         'methods' => 'GET',
@@ -951,7 +970,9 @@ function abonelik_kontrol($activation_code,$zaman_deaktif = false) {
         }
     }
 
-    $response = wp_remote_get("https://wptokyo.com/wp-json/membership/v1/check-membership?activation_code={$activation_code}");
+    $purchased_site = get_option('purchased_site');
+
+    $response = wp_remote_get("{$purchased_site}/wp-json/membership/v1/check-membership?activation_code={$activation_code}");
 
     if (is_wp_error($response)) {
         return ['exists' => false, 'has_active_membership' => false, 'message' => 'API request failed.'];
@@ -977,20 +998,20 @@ function install_plugin_or_theme($download_links, $aktivasyon_kodu) {
     $purchased_site = get_option('purchased_site');
 
     // SKU kontrolü ve abonelik kontrolü
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'jpn_products';
-    $subscription_skus = ['999', '998', '997'];
-    $product_skus = $wpdb->get_col("SELECT sku FROM $table_name");
+    // global $wpdb;
+    // $table_name = $wpdb->prefix . 'jpn_products';
+    // $subscription_skus = ['999', '998', '997'];
+    // $product_skus = $wpdb->get_col("SELECT sku FROM $table_name");
 
-    if ($purchased_site === 'https://wptokyo.com' || array_intersect($subscription_skus, $product_skus)) {
-        $membership_status = abonelik_kontrol($aktivasyon_kodu);
-        if (!$membership_status['has_active_membership']) {
-            return [
-                'success' => false,
-                'message' => 'You do not have an active membership.'
-            ];
-        }
-    }
+    // if ($purchased_site === 'https://wptokyo.com' || $purchased_site === 'https://japonadam.com' || array_intersect($subscription_skus, $product_skus)) {
+    //     $membership_status = abonelik_kontrol($aktivasyon_kodu);
+    //     if (!$membership_status['has_active_membership']) {
+    //         return [
+    //             'success' => false,
+    //             'message' => 'You do not have an active membership.'
+    //         ];
+    //     }
+    // }
     
 
     $links = explode(',', $download_links);
