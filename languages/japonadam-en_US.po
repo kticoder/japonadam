@@ -48,6 +48,8 @@ msgstr "Update"
 msgid "Kurulum Yap"
 msgstr "Install"
 
+msgid "Yenile"
+msgstr "Refresh"
 
 msgid "Kurulum yapılıyor..."
 msgstr "Installation in progress..."
@@ -72,3 +74,12 @@ msgstr "This plugin is already installed on your site."
 
 msgid "Bir hata oluştu. Lütfen daha sonra tekrar deneyiniz."
 msgstr "An error occurred. Please try again later."
+
+msgid "Upload limitiniz 100 MB'den düşük. Lütfen sunucu ayarlarınızı güncelleyin."
+msgstr "Your upload limit is less than 100 MB. Please update your server settings."
+
+msgid "Yanlış yapılandırma! Ayarlar > Kalıcı Bağlantılar > Yazı Adı olarak değiştiriniz."
+msgstr "Incorrect configuration! Change Settings > Permalinks > Post Name."
+
+msgid "Önemli Uyarılar"
+msgstr "Important Warnings"
