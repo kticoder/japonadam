@@ -83,3 +83,6 @@ msgstr "Incorrect configuration! Change Settings > Permalinks > Post Name."
 
 msgid "Önemli Uyarılar"
 msgstr "Important Warnings"
+
+msgid "Bu ürün sitenizde kurulu."
+msgstr "This product is already installed on your site."

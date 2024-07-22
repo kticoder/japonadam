@@ -92,7 +92,7 @@ function installPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
             clearInterval(interval); // Intervalı sonlandır.
             document.getElementById('japonloadingPopup').classList.add('hidden'); // "Kurulum devam ediyor..." mesajını gizle.
             document.getElementById('japonloadingPopup').style.display = "none";
-            japonprogressBar.style.width = '0%'; // Yükleme barını sıfırla.
+            japonprogressBar.style.widthtranslation_array = '0%'; // Yükleme barını sıfırla.
 
             if (xhr.status == 200) {
                 var response = JSON.parse(xhr.responseText);
@@ -100,7 +100,7 @@ function installPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
                     japonprogressBar.style.width = '100%';
                     alert(translations.pluginInstalled);
                     console.log(response);
-                    buttonElement.textContent = "Bu ürün sitenizde kurulu.";
+                    buttonElement.textContent = translations.productInstalled;;
                     buttonElement.style.backgroundColor = "green";
                     buttonElement.style.pointerEvents = "none";
                     addProductToInstalledList(productID);
@@ -108,7 +108,6 @@ function installPlugin(buttonElement, aktivasyonKodu,indirmeLinki){
                     buttonElement.textContent = translations.pluginAlreadyInstalled;;
                     buttonElement.style.backgroundColor = "green";
                     buttonElement.style.pointerEvents = "none";
-                // eğer mesaj içinde Destination folder already exists. hatası varsa
                 } else if (response.message.indexOf('Destination folder already exists.') !== -1) {
                     alert(translations.pluginExists);
                 } else {

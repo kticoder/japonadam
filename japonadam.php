@@ -2,7 +2,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.34
+Version: 1.1.35
 Author: Melih Çat & Ktidev
 */
 
@@ -230,7 +230,9 @@ class JaponAdamAktivasyon {
                 'pluginInstalled' => __('Ürününüz başarıyla kuruldu', 'japonadam'),
                 'pluginAlreadyInstalled' => __('Bu ürün sitenizde zaten kurulmuş.', 'japonadam'),
                 'pluginExists' => __('Bu eklenti sitenizde zaten kurulu.', 'japonadam'),
-                'errorOccurred' => __('Bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.', 'japonadam')
+                'errorOccurred' => __('Bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.', 'japonadam'),
+                'productInstalled' => __('Bu ürün sitenizde kurulu.', 'japonadam')
+
             );
 
             wp_localize_script('japonadam-js', 'translations', $translation_array);

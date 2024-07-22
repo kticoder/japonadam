@@ -83,3 +83,6 @@ msgstr "Falsche Konfiguration! Ändern Sie Einstellungen > Permalinks > Beitrags
 
 msgid "Önemli Uyarılar"
 msgstr "Wichtige Hinweise"
+
+msgid "Bu ürün sitenizde kurulu."
+msgstr "Dieses Produkt ist bereits auf Ihrer Website installiert."
