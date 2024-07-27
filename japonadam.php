@@ -2,7 +2,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.36
+Version: 1.1.37
 Author: Melih Çat & Ktidev
 */
 
@@ -1092,6 +1092,4 @@ function japonadam_plugin_action_links($links) {
 }
 
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'japonadam_plugin_action_links');
-
-
-
+function custom_footer_style() { echo '<style> #wpfooter { position: relative !important; } </style>'; } add_action('admin_head', 'custom_footer_style');
