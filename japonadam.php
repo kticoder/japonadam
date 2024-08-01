@@ -2,7 +2,7 @@
 /*
 Plugin Name: Japon Adam Aktivasyon
 Description: Aktivasyon kodu doğrulama eklentisi
-Version: 1.1.37
+Version: 1.1.38
 Author: Melih Çat & Ktidev
 */
 
@@ -21,10 +21,27 @@ $myUpdateChecker->setBranch('main');
 $myUpdateChecker->getVcsApi()->enableReleaseAssets();
 
 function japonadam_load_textdomain() {
-    load_plugin_textdomain('japonadam', false, basename(dirname(__FILE__)) . '/languages/');
+    $locale = determine_locale();
+    $locale = apply_filters('plugin_locale', $locale, 'japonadam');
+
+    // Türkçe veya Almanca değilse İngilizce kullan
+    if ($locale !== 'tr_TR' && $locale !== 'de_DE') {
+        $locale = 'en_US';
+    }
+
+    $mofile = 'japonadam-' . $locale . '.mo';
+    $mofile_path = WP_LANG_DIR . '/plugins/' . $mofile;
+
+    // Önce WP_LANG_DIR'de dil dosyasını yüklemeyi dene
+    if (file_exists($mofile_path)) {
+        load_textdomain('japonadam', $mofile_path);
+    } else {
+        // Eğer WP_LANG_DIR'de bulunamazsa, plugin dizininden yüklemeyi dene
+        $mofile_path = plugin_dir_path(__FILE__) . 'languages/' . $mofile;
+        load_plugin_textdomain('japonadam', false, dirname(plugin_basename(__FILE__)) . '/languages/');
+    }
 }
 add_action('plugins_loaded', 'japonadam_load_textdomain');
-
 function japonadam_add_help_center_submenu() {
     $satin_alinan_site = new JaponAdamAktivasyon();
     $satin_alinan_site = $satin_alinan_site->get_purchase_site($satin_alinan_site->aktivasyon_kodu_getir());
@@ -1086,7 +1103,7 @@ function install_plugin_or_theme($download_links, $aktivasyon_kodu) {
 
 
 function japonadam_plugin_action_links($links) {
-    $settings_link = '<a href="' . admin_url('admin.php?page=japon-adam') . '">Ayarlar</a>';
+    $settings_link = '<a href="' . admin_url('admin.php?page=japon-adam') . '">' . __('Ayarlar', 'japonadam') . '</a>';
     array_unshift($links, $settings_link);
     return $links;
 }
